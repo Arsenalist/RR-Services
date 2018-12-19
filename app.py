@@ -4,6 +4,7 @@ import requests
 import os
 from flask import jsonify
 from flask_cors import CORS
+from bs4 import BeautifulSoup
 CORS(app)
 @app.route("/results")
 def results():
@@ -22,6 +23,14 @@ def players():
 @app.route("/players/<player_id>/summary")
 def player_summary(player_id):
     return jsonify(requests.get('https://api.thescore.com/nba/players/' + player_id + '/summary').json())
+
+
+@app.route("/injuries")
+def injuries():
+    text = requests.get('https://www.rotowire.com/basketball/news.php?team=TOR').text
+    soup = BeautifulSoup(text)
+    for s in soup.find_all('div', 'news-update'):
+        print (s.prettify())
 
 
 if __name__ == '__main__':
