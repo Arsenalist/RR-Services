@@ -7,11 +7,11 @@ from flask_cors import CORS
 CORS(app)
 @app.route("/results")
 def results():
-    return jsonify(requests.get('https://api.thescore.com/nba/teams/5/events/upcoming').json())
+    return jsonify(requests.get('https://api.thescore.com/nba/teams/5/events/previous?rpp=10').json())
 
 @app.route("/schedule")
 def schedule():
-    return jsonify(requests.get('https://api.thescore.com/nba/teams/5/events/upcoming').json())
+    return jsonify(requests.get('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1').json())
 
 @app.route("/players")
 def players():
