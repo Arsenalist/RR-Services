@@ -29,7 +29,6 @@ def player_summary(player_id):
 def injuries():
     text = requests.get('https://www.rotowire.com/basketball/news.php?team=TOR').text
     news_updates = []
-    text = f.read()
     soup = BeautifulSoup(text)
     for s in soup.find_all('div', 'news-update'):
         update = {
