@@ -25,13 +25,21 @@ def player_summary(player_id):
     return jsonify(requests.get('https://api.thescore.com/nba/players/' + player_id + '/summary').json())
 
 
-@app.route("/injuries")
+@app.route("/news")
 def injuries():
     text = requests.get('https://www.rotowire.com/basketball/news.php?team=TOR').text
+    news_updates = []
+    text = f.read()
     soup = BeautifulSoup(text)
     for s in soup.find_all('div', 'news-update'):
-        print (s.prettify())
-
+        update = {
+                'name': s.find('a', 'news-update__player-link').get_text(),
+                'headline': s.find('div', 'news-update__headline').get_text(),
+                'timestamp': s.find('div', 'news-update__timestamp').get_text(),
+                'text': s.find('div', 'news-update__news').get_text()
+        }
+        news_updates.append(update)
+    return jsonify(news_updates)
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
