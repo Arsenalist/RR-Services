@@ -57,6 +57,52 @@ def web_articles():
         results.append(article)
     return jsonify(results)
 
+@app.route("/salaries")
+def salaries():
+    
+    text = requests.get('https://www.basketball-reference.com/contracts/TOR.html').text
+    soup = BeautifulSoup(text)
+
+    results = {}
+
+    # get table
+    contracts = soup.select('#contracts')
+    if contracts is not None and len(contracts) != 0:
+            results['contracts'] = str(contracts[0])
+
+    return jsonify(results)
+
+@app.route("/standings")
+def standings():
+    
+    text = requests.get('https://www.basketball-reference.com/leagues/NBA_2019.html').text
+    soup = BeautifulSoup(text)
+
+    results = {}
+
+    # get table
+    east_standings = soup.select('#confs_standings_E')
+    if east_standings is not None and len(east_standings) != 0:
+            results['east_standings'] = str(east_standings[0]).replace('suppress_all', 'table table-striped')
+
+    west_standings = soup.select('#confs_standings_W')
+    if west_standings is not None and len(west_standings) != 0:
+            results['west_standings'] = str(west_standings[0]).replace('suppress_all', 'table table-striped')
+
+    return jsonify(results)
+
+
+    results = []
+    for a in web_articles:
+        article = {
+                'title': a['description'],
+                'href': a['href'],
+                'domain': findDomain(a['href'])
+        }
+        results.append(article)
+    return jsonify(results)
+
+
 def findDomain(url):
     o = urlparse(url)
     return o.hostname
