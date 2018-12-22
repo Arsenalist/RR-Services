@@ -5,6 +5,9 @@ import os
 from flask import jsonify
 from flask_cors import CORS
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+
+
 CORS(app)
 @app.route("/results")
 def results():
@@ -39,6 +42,24 @@ def injuries():
         }
         news_updates.append(update)
     return jsonify(news_updates)
+
+@app.route("/articles")
+def web_articles():
+    
+    web_articles = requests.get(os.environ.get('WEB_ARTICLES_ENDPOINT', '')).json()
+    results = []
+    for a in web_articles:
+        article = {
+                'title': a['description'],
+                'href': a['href'],
+                'domain': findDomain(a['href'])
+        }
+        results.append(article)
+    return jsonify(results)
+
+def findDomain(url):
+    o = urlparse(url)
+    return o.hostname
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
