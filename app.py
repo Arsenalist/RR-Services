@@ -67,6 +67,11 @@ def salaries():
 
     # get table
     contracts = soup.select('#contracts')
+    for c in contracts:
+        for a in c.find_all('a'):
+                a.parent.append(a.get_text())
+                a.decompose()
+
     if contracts is not None and len(contracts) != 0:
             results['contracts'] = str(contracts[0])
 
