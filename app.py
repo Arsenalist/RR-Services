@@ -73,7 +73,7 @@ def salaries():
                 a.decompose()
 
     if contracts is not None and len(contracts) != 0:
-            results['contracts'] = str(contracts[0])
+            results['contracts'] = str(contracts[0]).replace('suppress_glossary', 'table table-striped')
 
     return jsonify(results)
 
