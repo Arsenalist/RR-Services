@@ -6,31 +6,61 @@ from flask import jsonify
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
-
+import redis
+import hashlib
+import json
 
 CORS(app)
+
+redis_client = r = redis.from_url(os.environ.get("REDIS_URL"))
+
+def makeRequest(endpoint):
+    try:
+        r = requests.get(endpoint)
+    except requests.exceptions.RequestException as e:
+        print ("Could not complete request " + endpoint)
+        print (e)
+    return r.text
+
+def get_from_general_cache(key):
+    return redis_client.get(key)
+
+def store_in_general_cache(key, result, timeout):
+    redis_client.set(key, result)
+    redis_client.expire(key, timeout)
+
+
+def considerCache(endpoint, timeout=600):
+    key = hashlib.md5(endpoint.encode()).hexdigest()
+    result = get_from_general_cache(key)
+    if (result is None):
+        result = makeRequest(endpoint)
+        store_in_general_cache(key, result, timeout)
+    return result
+
+
 @app.route("/results")
 def results():
-    return jsonify(requests.get('https://api.thescore.com/nba/teams/5/events/previous?rpp=10').json())
+    return jsonify(json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=10')))
 
 @app.route("/schedule")
 def schedule():
-    return jsonify(requests.get('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1').json())
+    return jsonify(json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1')))
 
 @app.route("/players")
 def players():
-    return jsonify(requests.get('https://api.thescore.com/nba/teams/5/players').json())
+    return jsonify(json.loads(considerCache('https://api.thescore.com/nba/teams/5/players')))
 
 
 
 @app.route("/players/<player_id>/summary")
 def player_summary(player_id):
-    return jsonify(requests.get('https://api.thescore.com/nba/players/' + player_id + '/summary').json())
+    return jsonify(json.loads(considerCache('https://api.thescore.com/nba/players/' + player_id + '/summary')))
 
 
 @app.route("/news")
 def injuries():
-    text = requests.get('https://www.rotowire.com/basketball/news.php?team=TOR').text
+    text = considerCache('https://www.rotowire.com/basketball/news.php?team=TOR')
     news_updates = []
     soup = BeautifulSoup(text)
     for s in soup.find_all('div', 'news-update'):
@@ -46,7 +76,7 @@ def injuries():
 @app.route("/articles")
 def web_articles():
     
-    web_articles = requests.get(os.environ.get('WEB_ARTICLES_ENDPOINT', '')).json()
+    web_articles = json.loads(considerCache(os.environ.get('WEB_ARTICLES_ENDPOINT', '')))
     results = []
     for a in web_articles:
         article = {
@@ -60,7 +90,7 @@ def web_articles():
 @app.route("/salaries")
 def salaries():
     
-    text = requests.get('https://www.basketball-reference.com/contracts/TOR.html').text
+    text = considerCache('https://www.basketball-reference.com/contracts/TOR.html')
     soup = BeautifulSoup(text)
 
     results = {}
@@ -80,7 +110,7 @@ def salaries():
 @app.route("/standings")
 def standings():
     
-    text = requests.get('https://www.basketball-reference.com/leagues/NBA_2019.html').text
+    text = considerCache('https://www.basketball-reference.com/leagues/NBA_2019.html')
     soup = BeautifulSoup(text)
 
     results = {}
@@ -95,18 +125,6 @@ def standings():
             results['west_standings'] = str(west_standings[0]).replace('suppress_all', 'table table-striped')
 
     return jsonify(results)
-
-
-    results = []
-    for a in web_articles:
-        article = {
-                'title': a['description'],
-                'href': a['href'],
-                'domain': findDomain(a['href'])
-        }
-        results.append(article)
-    return jsonify(results)
-
 
 def findDomain(url):
     o = urlparse(url)
