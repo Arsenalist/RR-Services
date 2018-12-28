@@ -1,0 +1,41 @@
+<table>
+    <tr>
+        <td></td>
+        {% for line_score in line_scores_away %}
+        <td>
+            {{ line_score.segment_string }}
+        </td>
+        {% endfor %}  
+        <td>
+            {{ away_score }}    
+        </td>
+    </tr>    
+    <tr>
+        <td>
+            {{ away_team.name }}    
+        </td>
+        {% for line_score in line_scores_away %}
+        <td>
+            {{ line_score.score }}
+        </td>
+        {% endfor %}  
+        <td>
+            {{ away_score }}    
+        </td>
+    </tr>
+    <tr>
+        <td>
+            {{ home_team.name }}    
+        </td>
+        {% for line_score in line_scores_home %}
+        <td>
+            {{ line_score.score }}
+        </td>
+        {% endfor %}  
+        <td>
+            {{ home_score }}    
+        </td>
+    </tr>
+</table>
+<table>
+</table>

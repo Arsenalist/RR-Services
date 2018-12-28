@@ -1,0 +1,71 @@
+    <tr>
+        <td>{{ record_type }}</td>
+        <td>MIN</td>
+        <td>PTS</td>
+        <td>FG</td>
+        <td>3FG</td>
+        <td>FT</td>
+        <td>OREB</td>
+        <td>DREB</td>
+        <td>REB</td>
+        <td>AST</td>
+        <td>STL</td>
+        <td>BLK</td>
+        <td>TO</td>
+        <td>PF</td>
+        <td>+/-</td>
+    </tr>
+{% for p in player_records %}
+    <td>
+        {{ p.player.first_initial_and_last_name }}
+    </td>
+    {% if p.dnp_type %}
+    <td colspan="14" class="dnp">
+        {{ p.dnp_reason }} - {{ p.dnp_details }}
+    </td>
+    {% else %}
+    <td>
+        {{ p.minutes }}
+    </td>
+    <td>
+        {{ p.points }}
+    </td>
+    <td>
+        {{ p.field_goals_made }}-{{ p.field_goals_attempted }}
+    </td>
+    <td>
+        {{ p.three_point_field_goals_made }}-{{ p.three_point_field_goals_attempted }}
+    </td>
+    <td>
+        {{ p.free_throws_made }}-{{ p.free_throws_made }}
+    </td>
+    <td>
+        {{ p.rebounds_offensive }}
+    </td>
+    <td>
+        {{ p.rebounds_defensive }}
+    </td>
+    <td>
+        {{ p.rebounds_total }}
+    </td>
+    <td>
+        {{ p.assists }}
+    </td>
+    <td>
+        {{ p.steals }}
+    </td>
+    <td>
+        {{ p.blocked_shots }}
+    </td>
+    <td>
+        {{ p.turnovers }}
+    </td>
+    <td>
+        {{ p.personal_fouls }}
+    </td>
+    <td>
+        {{ p.plus_minus }}
+    </td>
+    {% endif %}
+</tr>    
+{% endfor %}
