@@ -116,6 +116,7 @@ def players():
             player_summary = json.loads(makeRequest('https://api.thescore.com/nba/players/' + str(p['id']) + '/summary'))
             player_summary[0]['full_name'] = p['full_name']
             player_summary_stats.append(player_summary[0])
+        player_summary_stats.sort(key=lambda x: x['points'], reverse=True)
         result = json.dumps(player_summary_stats)
         store_in_general_cache('player_summary_stats', result, 3600 * 24)
     return jsonify(json.loads(result))
