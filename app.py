@@ -106,15 +106,19 @@ def box(event_id):
 def schedule():
     return jsonify(json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1')))
 
-@app.route("/players")
+@app.route("/players/stats")
 def players():
-    return jsonify(json.loads(considerCache('https://api.thescore.com/nba/teams/5/players')))
-
-
-
-@app.route("/players/<player_id>/summary")
-def player_summary(player_id):
-    return jsonify(json.loads(considerCache('https://api.thescore.com/nba/players/' + player_id + '/summary')))
+    result = get_from_general_cache('player_summary_stats')
+    if result is None:
+        player_summary_stats = []
+        players = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/players'))
+        for p in players:
+            player_summary = json.loads(makeRequest('https://api.thescore.com/nba/players/' + str(p['id']) + '/summary'))
+            player_summary[0]['full_name'] = p['full_name']
+            player_summary_stats.append(player_summary[0])
+        result = json.dumps(player_summary_stats)
+        store_in_general_cache('player_summary_stats', result, 3600 * 24)
+    return jsonify(json.loads(result))
 
 
 @app.route("/news")
