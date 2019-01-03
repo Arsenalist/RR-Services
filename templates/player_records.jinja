@@ -1,4 +1,4 @@
-    <tr>
+    <tr class="stats-header">
         <td>{{ record_type }}</td>
         <td>MIN</td>
         <td>PTS</td>
@@ -16,7 +16,7 @@
         <td>+/-</td>
     </tr>
 {% for p in player_records %}
-    <td>
+    <td class="player">
         {{ p.player.first_initial_and_last_name }}
     </td>
     {% if p.dnp_type %}

@@ -1,38 +1,38 @@
-<table>
+<table class="table">
     <tr>
         <td></td>
         {% for line_score in line_scores_away %}
-        <td>
+        <td class="segment-label">
             {{ line_score.segment_string }}
         </td>
         {% endfor %}  
         <td>
-            {{ away_score }}    
+              
         </td>
     </tr>    
     <tr>
-        <td>
+        <td class="segment-team">
             {{ away_team.name }}    
         </td>
         {% for line_score in line_scores_away %}
-        <td>
+        <td class="segment-team">
             {{ line_score.score }}
         </td>
         {% endfor %}  
-        <td>
+        <td class="segment-last-score">
             {{ away_score }}    
         </td>
     </tr>
     <tr>
-        <td>
+        <td class="segment-team">
             {{ home_team.name }}    
         </td>
         {% for line_score in line_scores_home %}
-        <td>
+        <td class="segment-score">
             {{ line_score.score }}
         </td>
         {% endfor %}  
-        <td>
+        <td class="segment-last-score">
             {{ home_score }}    
         </td>
     </tr>
