@@ -104,7 +104,37 @@ def box(event_id):
 
 @app.route("/schedule")
 def schedule():
-    return jsonify(json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1')))
+    content = get_from_general_cache('schfedddule')
+    max_tv_schedules = 10
+    if content is None:
+        schedule = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1'))
+        result = []    
+        i = 0
+        for game in schedule:
+            if i < max_tv_schedules:
+                detail = json.loads(makeRequest('https://api.thescore.com' + game['api_uri']))
+                game['tv_schedule_display'] = createTvScheduleString(detail)
+            else:
+                game['tv_schedule_display'] = ""            
+            i = i + 1
+            result.append(game)
+        content = json.dumps(result)
+        store_in_general_cache('schedule', content, 3600 * 3)
+    return jsonify(json.loads(content))
+
+def createTvScheduleString(game):
+    tv_listings = []
+    if 'tv_listings_by_country_code' in game is not None:
+        if 'ca' in game['tv_listings_by_country_code'] is not None:
+            tv_listings.extend(game['tv_listings_by_country_code']['ca'])
+        if 'us' in game['tv_listings_by_country_code'] is not None:
+            tv_listings.extend(game['tv_listings_by_country_code']['us'])
+    result = ""
+    for tv in tv_listings:
+        result += tv['short_name'] + ", "
+    if len(result) > 0:
+        result = result[:-2]
+    return result
 
 @app.route("/players/stats")
 def players():
