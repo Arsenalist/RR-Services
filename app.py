@@ -201,24 +201,65 @@ def salaries():
 
     return jsonify(results)
 
-@app.route("/standings")
-def standings():
-    
-    text = considerCache('https://www.basketball-reference.com/leagues/NBA_2019.html')
-    soup = BeautifulSoup(text)
+@app.route("/standings/conference")
+def get_conference_standings():
+    result = get_from_general_cache('standings_conference')
+    if result is None:
+        update_cache_with_all_standings()
+        result = get_from_general_cache('standings_conference')
+    return jsonify({'html': result.decode('utf-8')})
 
-    results = {}
+@app.route("/standings/division")
+def get_division_standings():
+    result = get_from_general_cache('standings_division')
+    if result is None:
+        update_cache_with_all_standings()
+        result = get_from_general_cache('standings_division')
+    return jsonify({'html': result.decode('utf-8')})
 
-    # get table
-    east_standings = soup.select('#confs_standings_E')
-    if east_standings is not None and len(east_standings) != 0:
-            results['east_standings'] = str(east_standings[0]).replace('suppress_all', 'table table-striped')
+@app.route("/standings/league")
+def get_league_standings():
+    result = get_from_general_cache('standings_league')
+    if result is None:
+        update_cache_with_all_standings()
+        result = get_from_general_cache('standings_league')
+    return jsonify({'html': result.decode('utf-8')})
 
-    west_standings = soup.select('#confs_standings_W')
-    if west_standings is not None and len(west_standings) != 0:
-            results['west_standings'] = str(west_standings[0]).replace('suppress_all', 'table table-striped')
 
-    return jsonify(results)
+def update_cache_with_all_standings():
+    standings = json.loads(makeRequest('http://api.thescore.com/nba/standings/'))
+    standings_html = {
+        'east': createStandingsHtml(createConferenceStandings(standings, 'Eastern'), 'conference', 'Eastern'),
+        'west': createStandingsHtml(createConferenceStandings(standings, 'Western'), 'conference', 'Western'),
+        'atlantic': createStandingsHtml(createDivisionStandings(standings, 'Atlantic'), 'division', 'Atlantic'),
+        'central': createStandingsHtml(createDivisionStandings(standings, 'Central'), 'division', 'Central'),
+        'southeast': createStandingsHtml(createDivisionStandings(standings, 'Southeast'), 'division', 'Southeast'),
+        'northwest': createStandingsHtml(createDivisionStandings(standings, 'Northwest'), 'division', 'Northwest'),
+        'pacific': createStandingsHtml(createDivisionStandings(standings, 'Pacific'), 'division', 'Pacific'),
+        'southwest': createStandingsHtml(createDivisionStandings(standings, 'Southwest'), 'division', 'Southwest'),
+        'league': createStandingsHtml(createLeagueStandings(standings), 'league', 'League')
+    }
+    store_in_general_cache('standings_conference', standings_html['east'] + standings_html['west'], 3600*2)
+    store_in_general_cache('standings_division', standings_html['atlantic'] + standings_html['central'] + 
+            standings_html['southeast'] + standings_html['northwest'] + standings_html['pacific'] + standings_html['southwest'], 3600*2)
+    store_in_general_cache('standings_league', standings_html['league'], 3600*2)
+
+def createStandingsHtml(standings, standing_type, standings_label):
+    return render_template('standings.jinja', standings=standings, standings_label=standings_label)
+
+def createConferenceStandings(standings, conference):
+    filtered = list(filter(lambda record: record['conference'] == conference, standings))
+    filtered.sort(key=lambda record: record['conference_rank'])
+    return filtered
+
+def createDivisionStandings(standings, division):
+    filtered = list(filter(lambda record: record['division'] == division, standings))
+    filtered.sort(key=lambda record: record['division_rank'])
+    return filtered
+
+def createLeagueStandings(standings):
+    standings.sort(key=lambda record: record['winning_percentage'], reverse=True)
+    return standings
 
 def findDomain(url):
     o = urlparse(url)

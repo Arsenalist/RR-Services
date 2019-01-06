@@ -1,0 +1,28 @@
+<h4>{{standings_label}}</h4>
+<table class="table">
+<thead>
+<th>Team</th>
+<th>W-L</th>
+<th>PCT</th>
+{% if standing_type != 'league' %}
+    <th>GB</th>
+{% endif %}
+<th>Last 10</th>
+</thead>
+<tbody>
+{% for team in standings %}
+<tr>
+    <td>{{team.team.name}}</td>
+    <td>{{team.short_record}}</td>
+    <td>{{team.winning_percentage}}</td>
+    {% if standing_type == 'conference' %}
+        <td>{{ team.conference_games_back }}</td>
+    {% elif standing_type == 'division' %}
+        <td>{{ team.games_back }}</td>
+    {% endif %}
+    <td>{{team.last_ten_games_record}}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
