@@ -22,9 +22,13 @@ app.jinja_loader = my_loader
 
 redis_client = r = redis.from_url(os.environ.get("REDIS_URL"))
 
-def makeRequest(endpoint):
+def makeRequest(endpoint, with_headers=False):
     try:
-        r = requests.get(endpoint)
+        headers = None 
+        if (with_headers):
+            # TODO: Send headerse which APIs are expecting
+            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
+        r = requests.get(endpoint, headers=headers)
     except requests.exceptions.RequestException as e:
         print ("Could not complete request " + endpoint)
         print (e)
@@ -264,6 +268,20 @@ def createLeagueStandings(standings):
 def findDomain(url):
     o = urlparse(url)
     return o.hostname
+
+@app.route("/rr/content/home")
+def get_main_rr_content():
+    soup = BeautifulSoup(makeRequest('https://www.raptorsrepublic.com/amp/', with_headers=True))
+    items = []
+    for item in soup.select('.amp-wp-article-header'):
+        items.append({
+            'title': item.find('a').get_text(),
+            'url': item.find('a')['href'],
+            'image': item.find('amp-img')['src'],
+            'excerpt': item.find('div', class_='amp-wp-content-loop').find('p').get_text()
+        })
+    return jsonify(items)
+
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
