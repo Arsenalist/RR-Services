@@ -2,7 +2,7 @@ from flask import Flask
 app = Flask(__name__)
 import requests
 import os
-from flask import jsonify
+from flask import jsonify, request
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
@@ -281,6 +281,18 @@ def get_main_rr_content():
             'excerpt': item.find('div', class_='amp-wp-content-loop').find('p').get_text()
         })
     return jsonify(items)
+
+@app.route("/rr/content/article", methods=['POST'])
+def get_rr_article():    
+    url = request.form["url"]
+    soup = BeautifulSoup(makeRequest(url, with_headers=True))
+    article = {   
+        'title': soup.find('h1', class_='amp-wp-title').get_text(),
+        'image': soup.find('amp-img', class_='attachment-large')['src'],
+        'html': str(soup.find('div', class_='the_content')),
+        'author': soup.find('span', class_='amp-wp-author').get_text()
+    }
+    return jsonify(article)
 
 
 if __name__ == '__main__':
