@@ -276,7 +276,7 @@ def get_main_rr_content():
     for item in soup.select('.amp-wp-article-header'):
         items.append({
             'title': item.find('a').get_text(),
-            'url': item.find('a')['href'],
+            'url': item.find('a')['href'].replace('-100x75', ''),
             'image': item.find('amp-img')['src'],
             'excerpt': item.find('div', class_='amp-wp-content-loop').find('p').get_text()
         })
