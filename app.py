@@ -244,8 +244,8 @@ def update_cache_with_all_standings():
             standings_html['southeast'] + standings_html['northwest'] + standings_html['pacific'] + standings_html['southwest'], 3600*2)
     store_in_general_cache('standings_league', standings_html['league'], 3600*2)
 
-def createStandingsHtml(standings, standing_type, standings_label):
-    return render_template('standings.jinja', standings=standings, standings_label=standings_label)
+def createStandingsHtml(standings, standings_type, standings_label):
+    return render_template('standings.jinja', standings=standings, standings_type=standings_type, standings_label=standings_label)
 
 def createConferenceStandings(standings, conference):
     filtered = list(filter(lambda record: record['conference'] == conference, standings))
