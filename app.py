@@ -11,6 +11,7 @@ import hashlib
 import json
 from flask import render_template
 import jinja2
+import base64
 
 CORS(app)
 
@@ -269,22 +270,23 @@ def findDomain(url):
     o = urlparse(url)
     return o.hostname
 
-@app.route("/rr/content/home")
+@app.route("/rr/content/latest")
 def get_main_rr_content():
     soup = BeautifulSoup(makeRequest('https://www.raptorsrepublic.com/amp/', with_headers=True))
     items = []
     for item in soup.select('.amp-wp-article-header'):
         items.append({
             'title': item.find('a').get_text(),
-            'url': item.find('a')['href'].replace('-100x75', ''),
-            'image': item.find('amp-img')['src'],
+            'url': item.find('a')['href'],
+            'hash': encode_string(item.find('a')['href']),
+            'image': item.find('amp-img')['src'].replace('-100x75', ''),
             'excerpt': item.find('div', class_='amp-wp-content-loop').find('p').get_text()
         })
     return jsonify(items)
 
-@app.route("/rr/content/article", methods=['POST'])
-def get_rr_article():    
-    url = request.form["url"]
+@app.route("/rr/content/article/<hash>")
+def get_rr_article(hash):    
+    url = decode_string(hash)
     soup = BeautifulSoup(makeRequest(url, with_headers=True))
     article = {   
         'title': soup.find('h1', class_='amp-wp-title').get_text(),
@@ -294,6 +296,12 @@ def get_rr_article():
     }
     return jsonify(article)
 
+
+def encode_string(to_encode):
+    return base64.b64encode(to_encode.encode()).decode('utf-8')
+
+def decode_string(to_decode):
+    return base64.b64decode(to_decode.encode('utf-8')).decode()
 
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
