@@ -292,11 +292,13 @@ def get_rr_article(hash):
     article = {   
         'title': soup.find('h1', class_='amp-wp-title').get_text(),
         'image': soup.find('amp-img', class_='attachment-large')['src'],
-        'html': str(soup.find('div', class_='the_content')),
+        'html': sanitize_content(str(soup.find('div', class_='the_content'))),
         'author': soup.find('span', class_='amp-wp-author').get_text()
     }
     return jsonify(article)
 
+def sanitize_content(content):
+    return content.replace("<amp-", "<").replace("</amp-", "</")
 
 def encode_string(to_encode):
     return base64.b64encode(to_encode.encode()).decode('utf-8')
