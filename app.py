@@ -110,7 +110,7 @@ def box(event_id):
 
 @app.route("/schedule")
 def schedule():
-    content = get_from_general_cache('schfedddule')
+    content = get_from_general_cache('schedule')
     max_tv_schedules = 10
     if content is None:
         schedule = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1'))
