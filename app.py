@@ -12,6 +12,7 @@ import json
 from flask import render_template
 import jinja2
 import base64
+from redis import StrictRedis
 
 CORS(app)
 
@@ -21,7 +22,7 @@ my_loader = jinja2.ChoiceLoader([
     ])
 app.jinja_loader = my_loader
 
-redis_client = r = redis.from_url(os.environ.get("REDIS_URL"))
+redis_client = StrictRedis.from_url(os.environ.get("REDIS_URL"), decode_responses=True)
 
 def makeRequest(endpoint, with_headers=False):
     try:
@@ -105,7 +106,7 @@ def box(event_id):
         player_records = json.loads(considerCache('https://api.thescore.com' + event['box_score']['api_uri'] + '/player_records'))
         content = createBoxScore(event, box_score, player_records)
         store_in_general_cache(event_id, content, 3600 * 24 * 7)
-    return jsonify({'html': content.decode('utf-8')})
+    return jsonify({'html': content})
 
 @app.route("/schedule")
 def schedule():
@@ -212,7 +213,7 @@ def get_conference_standings():
     if result is None:
         update_cache_with_all_standings()
         result = get_from_general_cache('standings_conference')
-    return jsonify({'html': result.decode('utf-8')})
+    return jsonify({'html': result})
 
 @app.route("/standings/division")
 def get_division_standings():
@@ -220,7 +221,7 @@ def get_division_standings():
     if result is None:
         update_cache_with_all_standings()
         result = get_from_general_cache('standings_division')
-    return jsonify({'html': result.decode('utf-8')})
+    return jsonify({'html': result})
 
 @app.route("/standings/league")
 def get_league_standings():
@@ -228,7 +229,7 @@ def get_league_standings():
     if result is None:
         update_cache_with_all_standings()
         result = get_from_general_cache('standings_league')
-    return jsonify({'html': result.decode('utf-8')})
+    return jsonify({'html': result})
 
 
 def update_cache_with_all_standings():
