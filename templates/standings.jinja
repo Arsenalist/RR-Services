@@ -1,26 +1,27 @@
 <h4>{{standings_label}}</h4>
-<table class="table">
+<table class="mat-table" role="grid">
 <thead>
-<th>Team</th>
-<th>W-L</th>
-<th>PCT</th>
+<tr class="mat-header-row" role="row">
+<th class="mat-header-cell" role="columnheader">Team</th>
+<th class="mat-header-cell" role="columnheader">W-L</th>
+<th class="mat-header-cell" role="columnheader">PCT</th>
 {% if standings_type != 'league' %}
-    <th>GB</th>
+    <th class="mat-header-cell" role="columnheader">GB</th>
 {% endif %}
-<th>Last 10</th>
+<th class="mat-header-cell" role="columnheader">Last 10</th>
 </thead>
 <tbody>
 {% for team in standings %}
-<tr>
-    <td>{{team.team.name}}</td>
-    <td>{{team.short_record}}</td>
-    <td>{{team.winning_percentage}}</td>
+<tr class="mat-row" role="row">
+    <td role="gridcell" class="mat-cell">{{team.team.name}}</td>
+    <td role="gridcell" class="mat-cell">{{team.short_record}}</td>
+    <td role="gridcell" class="mat-cell">{{team.winning_percentage}}</td>
     {% if standings_type == 'conference' %}
-        <td>{{ team.conference_games_back }}</td>
+        <td role="gridcell" class="mat-cell">{{ team.conference_games_back }}</td>
     {% elif standings_type == 'division' %}
-        <td>{{ team.games_back }}</td>
+        <td role="gridcell" class="mat-cell">{{ team.games_back }}</td>
     {% endif %}
-    <td>{{team.last_ten_games_record}}</td>
+    <td role="gridcell" class="mat-cell">{{team.last_ten_games_record}}</td>
 </tr>
 {% endfor %}
 </tbody>

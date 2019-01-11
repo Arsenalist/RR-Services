@@ -31,10 +31,10 @@ def makeRequest(endpoint, with_headers=False):
             # TODO: Send headerse which APIs are expecting
             headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
         r = requests.get(endpoint, headers=headers)
+        return r.text
     except requests.exceptions.RequestException as e:
         print ("Could not complete request " + endpoint)
-        print (e)
-    return r.text
+        print (e)    
 
 def get_from_general_cache(key):
     return redis_client.get(key)
@@ -187,6 +187,39 @@ def web_articles():
         results.append(article)
     return jsonify(results)
 
+def remove_attrs(soup):
+    for tag in soup.findAll(True): 
+        tag.attrs = None
+    return soup
+
+
+def decorate_table_with_material_design(content):
+    replacements = [
+        {
+        'target': 'class="suppress_glossary sortable stats_table"',
+        'replacement': 'role="grid" class="mat-table"'
+        },
+        {
+        'target': '<table ',
+        'replacement': '<table role="grid" class="mat-table" '
+        },
+        {
+        'target': '<td>',
+        'replacement': '<td role="gridcell" class="mat-cell">'
+        },
+        {
+        'target': '<th>',
+        'replacement': '<th role="columnheader" class="mat-header-cell">'
+        },
+        {
+        'target': '<tr>',
+        'replacement': '<tr role="row" class="mat-row">'
+        }
+    ]
+    for r in replacements:
+        content = content.replace(r['target'], r['replacement'])
+    return content
+
 @app.route("/salaries")
 def salaries():
     
@@ -203,7 +236,7 @@ def salaries():
                 a.decompose()
 
     if contracts is not None and len(contracts) != 0:
-            results['contracts'] = str(contracts[0]).replace('suppress_glossary', 'table table-striped')
+        results['contracts'] = decorate_table_with_material_design(str(remove_attrs(contracts[0])))
 
     return jsonify(results)
 
@@ -310,4 +343,4 @@ application = app
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    application.run(host='0.0.0.0')   
+    application.run(debug=True, host='0.0.0.0')   
