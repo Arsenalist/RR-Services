@@ -97,6 +97,10 @@ def createBoxScore(event, box_score, player_records):
 def results():
     return jsonify(json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=10')))
 
+@app.route("/rr/podcasts")
+def podcasts():
+    return jsonify(json.loads(considerCache('https://assets.raptorsrepublic.com/rapcast.json')))
+
 @app.route("/box/nba/events/<event_id>")
 def box(event_id):
     content = get_from_general_cache(event_id)
