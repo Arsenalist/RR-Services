@@ -1,38 +1,38 @@
-<table class="table">
-    <tr>
-        <td></td>
+<table class="mat-table" role="grid">
+    <tr class="mat-header-row" role="row">
+        <td class="mat-header-cell" role="columnheader"></td>
         {% for line_score in line_scores_away %}
-        <td class="segment-label">
+        <td class="segment-label mat-header-cell" role="columnheader">
             {{ line_score.segment_string }}
         </td>
         {% endfor %}  
-        <td>
+        <td class="mat-header-cell" role="columnheader">
               
         </td>
     </tr>    
-    <tr>
-        <td class="segment-team">
+    <tr class="mat-row" role="row">
+        <td class="mat-cell" role="gridcell">
             {{ away_team.name }}    
         </td>
         {% for line_score in line_scores_away %}
-        <td class="segment-team">
+        <td class="mat-cell" role="gridcell">
             {{ line_score.score }}
         </td>
         {% endfor %}  
-        <td class="segment-last-score">
+        <td class="mat-cell" role="gridcell">
             {{ away_score }}    
         </td>
     </tr>
-    <tr>
-        <td class="segment-team">
+    <tr class="mat-row" role="row">
+        <td class="mat-cell" role="gridcell">
             {{ home_team.name }}    
         </td>
         {% for line_score in line_scores_home %}
-        <td class="segment-score">
+        <td class="mat-cell" role="gridcell">
             {{ line_score.score }}
         </td>
         {% endfor %}  
-        <td class="segment-last-score">
+        <td class="mat-cell" role="gridcell">
             {{ home_score }}    
         </td>
     </tr>

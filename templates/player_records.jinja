@@ -1,69 +1,70 @@
-    <tr class="stats-header">
-        <td>{{ record_type }}</td>
-        <td>MIN</td>
-        <td>PTS</td>
-        <td>FG</td>
-        <td>3FG</td>
-        <td>FT</td>
-        <td>OREB</td>
-        <td>DREB</td>
-        <td>REB</td>
-        <td>AST</td>
-        <td>STL</td>
-        <td>BLK</td>
-        <td>TO</td>
-        <td>PF</td>
-        <td>+/-</td>
+    <tr class="mat-header-row" role="row">
+        <td class="mat-header-cell mat-table-sticky" role="columnheader">{{ record_type }}</td>
+        <td class="mat-header-cell" role="columnheader">MIN</td>
+        <td class="mat-header-cell" role="columnheader">PTS</td>
+        <td class="mat-header-cell" role="columnheader">FG</td>
+        <td class="mat-header-cell" role="columnheader">3FG</td>
+        <td class="mat-header-cell" role="columnheader">FT</td>
+        <td class="mat-header-cell" role="columnheader">OREB</td>
+        <td class="mat-header-cell" role="columnheader">DREB</td>
+        <td class="mat-header-cell" role="columnheader">REB</td>
+        <td class="mat-header-cell" role="columnheader">AST</td>
+        <td class="mat-header-cell" role="columnheader">STL</td>
+        <td class="mat-header-cell" role="columnheader">BLK</td>
+        <td class="mat-header-cell" role="columnheader">TO</td>
+        <td class="mat-header-cell" role="columnheader">PF</td>
+        <td class="mat-header-cell" role="columnheader">+/-</td>
     </tr>
+<tr class="mat-row" role="row">    
 {% for p in player_records %}
-    <td class="player">
+    <td class="mat-table-sticky mat-cell" role="gridcell">
         {{ p.player.first_initial_and_last_name }}
     </td>
     {% if p.dnp_type %}
-    <td colspan="14" class="dnp">
+    <td colspan="14" class="mat-cell" role="gridcell">
         {{ p.dnp_reason }} - {{ p.dnp_details }}
     </td>
     {% else %}
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.minutes }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.points }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.field_goals_made }}-{{ p.field_goals_attempted }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.three_point_field_goals_made }}-{{ p.three_point_field_goals_attempted }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.free_throws_made }}-{{ p.free_throws_made }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.rebounds_offensive }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.rebounds_defensive }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.rebounds_total }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.assists }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.steals }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.blocked_shots }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.turnovers }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.personal_fouls }}
     </td>
-    <td>
+    <td class="mat-cell" role="gridcell">
         {{ p.plus_minus }}
     </td>
     {% endif %}
