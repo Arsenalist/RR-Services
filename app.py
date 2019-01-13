@@ -49,7 +49,8 @@ def considerCache(endpoint, timeout=600):
     result = get_from_general_cache(key)
     if (result is None):
         result = makeRequest(endpoint)
-        store_in_general_cache(key, result, timeout)
+        if (key is not None and result is not None):
+            store_in_general_cache(key, result, timeout)
     return result
 
 def createBoxScore(event, box_score, player_records):
@@ -185,6 +186,7 @@ def web_articles():
     for a in web_articles:
         article = {
                 'title': a['description'],
+                'description': a['extended'],
                 'href': a['href'],
                 'domain': findDomain(a['href'])
         }
@@ -342,7 +344,7 @@ def encode_string(to_encode):
 
 def decode_string(to_decode):
     return base64.b64decode(to_decode.encode('utf-8')).decode()
-
+  
 application = app
 
 if __name__ == '__main__':
