@@ -113,22 +113,28 @@ def box(event_id):
         content = json.dumps(content)
         store_in_general_cache(event_id, content, 3600 * 24 * 7)        
     return jsonResponse(content)
+
+
+def make_better_schedule(schedule):
+    result = []    
+    i = 0
+    max_tv_schedules = 10
+    for game in schedule:
+        if i < max_tv_schedules:
+            detail = json.loads(makeRequest('https://api.thescore.com' + game['api_uri']))
+            game['tv_schedule_display'] = createTvScheduleString(detail)
+        else:
+            game['tv_schedule_display'] = ""            
+        i = i + 1
+        result.append(game)
+    return result
+
 @app.route("/schedule")
 def schedule():
-    content = get_from_general_cache('schedule')
-    max_tv_schedules = 10
+    content = get_from_general_cache('schedule')    
     if content is None:
         schedule = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1'))
-        result = []    
-        i = 0
-        for game in schedule:
-            if i < max_tv_schedules:
-                detail = json.loads(makeRequest('https://api.thescore.com' + game['api_uri']))
-                game['tv_schedule_display'] = createTvScheduleString(detail)
-            else:
-                game['tv_schedule_display'] = ""            
-            i = i + 1
-            result.append(game)
+        result = make_better_schedule(schedule)
         content = json.dumps(result)
         store_in_general_cache('schedule', content, 3600 * 3)
     return jsonResponse(content)
@@ -162,6 +168,45 @@ def players():
         store_in_general_cache('player_summary_stats', result, 3600 * 24)
     return jsonResponse(result)
 
+@app.route("/briefing")
+def briefing():
+    next_game = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=1'))
+    next_game = make_better_schedule(next_game)
+
+    previous_game = json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=1'))
+
+    standings = json.loads(makeRequest('http://api.thescore.com/nba/standings/'))
+    standings = createConferenceStandings(standings, 'Eastern')
+
+    team_index = -1
+    for i in range(0, len(standings)):
+        if standings[i]["team"]["id"] == 5:
+            team_index = i
+            break
+
+    # didn't find the team
+    if team_index == -1:
+        raise Exception("Team not found")
+
+    # get the two closest teams around the Raptors
+    # first place
+    if team_index == 0:
+        start_index = 0
+        end_index = 2
+    # last place
+    elif team_index == len(standings) - 1:
+        start_index = len(standings) - 1 - 2
+        end_index = len(standings) - 1
+    else:
+        start_index = team_index - 1
+        end_index = team_index + 1
+    standings = standings[start_index:end_index+1]
+
+    return jsonify({
+        'next_game': next_game,
+        'previous_game': previous_game,
+        'standings': standings
+    })
 
 @app.route("/news")
 def injuries():
