@@ -96,11 +96,11 @@ def createBoxScore(event, box_score, player_records):
 
 @app.route("/results")
 def results():
-    return jsonify(json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=10')))
+    return jsonResponse(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=10'))
 
 @app.route("/rr/podcasts")
 def podcasts():
-    return jsonify(json.loads(considerCache('https://assets.raptorsrepublic.com/rapcast.json')))
+    return jsonResponse(considerCache('https://assets.raptorsrepublic.com/rapcast.json'))
 
 @app.route("/box/nba/events/<event_id>")
 def box(event_id):
@@ -112,8 +112,7 @@ def box(event_id):
         content = createBoxScore(event, box_score, player_records)
         content = json.dumps(content)
         store_in_general_cache(event_id, content, 3600 * 24 * 7)        
-    return jsonify(json.loads(content))
-
+    return jsonResponse(content)
 @app.route("/schedule")
 def schedule():
     content = get_from_general_cache('schedule')
@@ -132,7 +131,7 @@ def schedule():
             result.append(game)
         content = json.dumps(result)
         store_in_general_cache('schedule', content, 3600 * 3)
-    return jsonify(json.loads(content))
+    return jsonResponse(content)
 
 def createTvScheduleString(game):
     tv_listings = []
@@ -161,7 +160,7 @@ def players():
         player_summary_stats.sort(key=lambda x: x['points'], reverse=True)
         result = json.dumps(player_summary_stats)
         store_in_general_cache('player_summary_stats', result, 3600 * 24)
-    return jsonify(json.loads(result))
+    return jsonResponse(result)
 
 
 @app.route("/news")
@@ -345,6 +344,14 @@ def encode_string(to_encode):
 
 def decode_string(to_decode):
     return base64.b64decode(to_decode.encode('utf-8')).decode()
+
+def jsonResponse(content):
+    response = app.response_class(
+        response=content,
+        status=200,
+        mimetype='application/json'
+    )
+    return response
   
 application = app
 
