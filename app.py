@@ -65,34 +65,34 @@ def createBoxScore(event, box_score, player_records):
 
     # player records
     away_records_starters = list(filter(lambda record: record['alignment'] == 'away' and record['started_game'] == True, player_records))
-    away_records_bench = list(filter(lambda record: record['alignment'] == 'away' and record['started_game'] == False, player_records))
+    away_records_bench = list(filter(lambda record: record['alignment'] == 'away' and record['started_game'] == False and record['dnp_type'] is None, player_records))
+    away_records_dnp = list(filter(lambda record: record['alignment'] == 'away' and record['dnp_type'] is not None, player_records))
     home_records_starters = list(filter(lambda record: record['alignment'] == 'home' and record['started_game'] == True, player_records))
-    home_records_bench = list(filter(lambda record: record['alignment'] == 'home' and record['started_game'] == False, player_records))
+    home_records_bench = list(filter(lambda record: record['alignment'] == 'home' and record['started_game'] == False and record['dnp_type'] is None, player_records))
+    home_records_dnp = list(filter(lambda record: record['alignment'] == 'home' and record['dnp_type'] is not None, player_records))
 
     # team records
     away_team_records = box_score['team_records']['away']
     home_team_records = box_score['team_records']['home']
 
-    # content blocks
-    header_content = render_template('header.jinja', away_team=away_team, home_team=home_team, away_score=away_score, home_score=home_score)
-    line_score_content = render_template('line_score.jinja', away_team=away_team, home_team=home_team, away_score=away_score, home_score=home_score, line_scores_away=line_scores_away, line_scores_home=line_scores_home)
-    away_starter_player_records_content = render_template('player_records.jinja', record_type='STARTERS', player_records=away_records_starters)
-    away_bench_player_records_content = render_template('player_records.jinja', record_type='BENCH', player_records=away_records_bench)
-    away_team_records_content = render_template('team_records.jinja', team_records=away_team_records)
-    home_starter_player_records_content = render_template('player_records.jinja', record_type='STARTERS', player_records=home_records_starters)
-    home_bench_player_records_content = render_template('player_records.jinja', record_type='BENCH', player_records=home_records_bench)
-    home_team_records_content = render_template('team_records.jinja', team_records=home_team_records)
-
-    return render_template('base.jinja', 
-        header_content=header_content, 
-        line_score_content=line_score_content, 
-        away_starter_player_records_content=away_starter_player_records_content,
-        away_bench_player_records_content=away_bench_player_records_content,
-        away_team_records_content=away_team_records_content,
-        home_starter_player_records_content=home_starter_player_records_content,
-        home_bench_player_records_content=home_bench_player_records_content,
-        home_team_records_content=home_team_records_content)
-        
+    return {
+        'away_records_starters': away_records_starters,
+        'away_records_bench': away_records_bench,
+        'away_records_dnp': away_records_dnp,
+        'home_records_starters': home_records_starters,
+        'home_records_bench': home_records_bench,
+        'home_records_dnp': home_records_dnp,
+        'home_team_records': [home_team_records],
+        'away_team_records': [away_team_records],
+        'away_team_name': away_team['name'],
+        'home_team_name': home_team['name'] ,    
+        'away_team_abbreviation': away_team['abbreviation'],
+        'home_team_abbreviation': home_team['abbreviation'] ,    
+        'away_score': away_score,
+        'home_score': home_score,
+        'line_scores_away': line_scores_away,
+        'line_scores_home': line_scores_home
+    }        
 
 @app.route("/results")
 def results():
@@ -110,8 +110,9 @@ def box(event_id):
         box_score = json.loads(considerCache('https://api.thescore.com' + event['box_score']['api_uri']))
         player_records = json.loads(considerCache('https://api.thescore.com' + event['box_score']['api_uri'] + '/player_records'))
         content = createBoxScore(event, box_score, player_records)
-        store_in_general_cache(event_id, content, 3600 * 24 * 7)
-    return jsonify({'html': content})
+        content = json.dumps(content)
+        store_in_general_cache(event_id, content, 3600 * 24 * 7)        
+    return jsonify(json.loads(content))
 
 @app.route("/schedule")
 def schedule():
