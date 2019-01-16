@@ -172,6 +172,10 @@ def players():
 def briefing():
     next_game = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=1'))
     next_game = make_better_schedule(next_game)
+    if len(next_game) != 0:
+        next_game = next_game[0]
+    else:
+        next_game = None
 
     previous_game = json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=1'))
 
