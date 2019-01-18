@@ -219,7 +219,7 @@ def briefing():
     previous_game = decorate_results(previous_game)
     if (len(previous_game) == 0):
         raise Exception("No previous game found")
-    previous_game = previous_game[0];        
+    previous_game = previous_game[0]
 
     standings = json.loads(makeRequest('http://api.thescore.com/nba/standings/'))
     standings = createConferenceStandings(standings, 'Eastern')
