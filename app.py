@@ -247,11 +247,18 @@ def briefing():
         start_index = team_index - 1
         end_index = team_index + 1
     standings = standings[start_index:end_index+1]
+    condensed_standings = []
+    for s in standings:
+        condensed_standings.append({
+            'name': s['team']['name'],
+            'record': s['short_record'],
+            'conference_games_back': s['conference_games_back'],
+        })
 
     return jsonify({
         'next_game': next_game,
         'previous_game': previous_game,
-        'standings': standings
+        'standings': condensed_standings
     })
 
 @app.route("/news")
