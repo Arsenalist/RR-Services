@@ -39,7 +39,7 @@ def makeRequest(endpoint, with_headers=False):
 def get_from_general_cache(key):
     return redis_client.get(key)
 
-def store_in_general_cache(key, result, timeout):
+def store_in_general_cache(key, result, timeout=300):
     redis_client.set(key, result)
     redis_client.expire(key, timeout)
 
@@ -94,9 +94,37 @@ def createBoxScore(event, box_score, player_records):
         'line_scores_home': line_scores_home
     }        
 
+def decorate_results(results):
+    for r in results:
+        location = ''
+        opposition = ''
+        if r['away_team']['abbreviation'] == "TOR":
+            location = "@"
+            opposition = r['home_team']['name']
+            if (r['box_score']['score']['away']['score'] > r['box_score']['score']['home']['score']):
+                result = "W"
+            else:
+                result = "L"
+        else:
+            location = "vs"
+            opposition = r['away_team']['name']
+            if (r['box_score']['score']['away']['score'] > r['box_score']['score']['home']['score']):
+                result = "L"
+            else:
+                result = "W"
+        r['result_string'] = result + ' ' + location + ' ' + opposition
+        r['event_id'] = r['api_uri'].split('/')[3]
+    return results
+
 @app.route("/results")
 def results():
-    return jsonResponse(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=10'))
+    content = get_from_general_cache('results')
+    if content is None:
+        results = decorate_results(json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/previous?rpp=10')))
+        content = json.dumps(results)
+        store_in_general_cache('results', content)
+
+    return jsonResponse(content)
 
 @app.route("/rr/podcasts")
 def podcasts():
@@ -115,7 +143,7 @@ def box(event_id):
     return jsonResponse(content)
 
 
-def make_better_schedule(schedule):
+def decorate_schedule(schedule):
     result = []    
     i = 0
     max_tv_schedules = 10
@@ -127,6 +155,15 @@ def make_better_schedule(schedule):
             game['tv_schedule_display'] = ""            
         i = i + 1
         result.append(game)
+
+        if game['away_team']['abbreviation'] == "TOR":
+            game['location'] = "@"
+            game['opposition'] = game['home_team']['name']
+        else:
+            game['location'] = "vs"
+            game['opposition'] = game['away_team']['name']
+
+        game['display_string'] = game['location'] + ' ' + game['opposition']
     return result
 
 @app.route("/schedule")
@@ -134,7 +171,7 @@ def schedule():
     content = get_from_general_cache('schedule')    
     if content is None:
         schedule = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1'))
-        result = make_better_schedule(schedule)
+        result = decorate_schedule(schedule)
         content = json.dumps(result)
         store_in_general_cache('schedule', content, 3600 * 3)
     return jsonResponse(content)
