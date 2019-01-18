@@ -112,8 +112,9 @@ def decorate_results(results):
                 result = "L"
             else:
                 result = "W"
-        r['result_string'] = result + ' ' + location + ' ' + opposition
+        r['display_string'] = result + ' ' + location + ' ' + opposition
         r['event_id'] = r['api_uri'].split('/')[3]
+        r['score_string'] = str(r['box_score']['score']['away']['score']) + '-' + str(r['box_score']['score']['home']['score'])
     return results
 
 @app.route("/results")
@@ -208,13 +209,17 @@ def players():
 @app.route("/briefing")
 def briefing():
     next_game = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=1'))
-    next_game = make_better_schedule(next_game)
+    next_game = decorate_schedule(next_game)
     if len(next_game) != 0:
         next_game = next_game[0]
     else:
         next_game = None
 
     previous_game = json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=1'))
+    previous_game = decorate_results(previous_game)
+    if (len(previous_game) == 0):
+        raise Exception("No previous game found")
+    previous_game = previous_game[0];        
 
     standings = json.loads(makeRequest('http://api.thescore.com/nba/standings/'))
     standings = createConferenceStandings(standings, 'Eastern')
