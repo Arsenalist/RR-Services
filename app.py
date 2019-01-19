@@ -1,18 +1,16 @@
 from flask import Flask
 app = Flask(__name__)
-import requests
 import os
-from flask import jsonify, request
+from flask import jsonify
 from flask_cors import CORS
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
-import redis
 import hashlib
 import json
-from flask import render_template
 import jinja2
 import base64
 from redis import StrictRedis
+from services.utils.httputils import HttpUtils
 
 CORS(app)
 
@@ -24,17 +22,6 @@ app.jinja_loader = my_loader
 
 redis_client = StrictRedis.from_url(os.environ.get("REDIS_URL"), decode_responses=True)
 
-def makeRequest(endpoint, with_headers=False):
-    try:
-        headers = None 
-        if (with_headers):
-            # TODO: Send headerse which APIs are expecting
-            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
-        r = requests.get(endpoint, headers=headers)
-        return r.text
-    except requests.exceptions.RequestException as e:
-        print ("Could not complete request " + endpoint)
-        print (e)    
 
 def get_from_general_cache(key):
     return redis_client.get(key)
@@ -48,7 +35,7 @@ def considerCache(endpoint, timeout=600):
     key = hashlib.md5(endpoint.encode()).hexdigest()
     result = get_from_general_cache(key)
     if (result is None):
-        result = makeRequest(endpoint)
+        result = HttpUtils.make_request(endpoint)
         if (key is not None and result is not None):
             store_in_general_cache(key, result, timeout)
     return result
@@ -121,7 +108,8 @@ def decorate_results(results):
 def results():
     content = get_from_general_cache('results')
     if content is None:
-        results = decorate_results(json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/previous?rpp=10')))
+        results = decorate_results(json.loads(
+            HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/previous?rpp=10')))
         content = json.dumps(results)
         store_in_general_cache('results', content)
 
@@ -150,7 +138,7 @@ def decorate_schedule(schedule):
     max_tv_schedules = 10
     for game in schedule:
         if i < max_tv_schedules:
-            detail = json.loads(makeRequest('https://api.thescore.com' + game['api_uri']))
+            detail = json.loads(HttpUtils.make_request('https://api.thescore.com' + game['api_uri']))
             game['tv_schedule_display'] = createTvScheduleString(detail)
         else:
             game['tv_schedule_display'] = ""            
@@ -171,7 +159,7 @@ def decorate_schedule(schedule):
 def schedule():
     content = get_from_general_cache('schedule')    
     if content is None:
-        schedule = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1'))
+        schedule = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1'))
         result = decorate_schedule(schedule)
         content = json.dumps(result)
         store_in_general_cache('schedule', content, 3600 * 3)
@@ -196,9 +184,10 @@ def players():
     result = get_from_general_cache('player_summary_stats')
     if result is None:
         player_summary_stats = []
-        players = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/players'))
+        players = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/5/players'))
         for p in players:
-            player_summary = json.loads(makeRequest('https://api.thescore.com/nba/players/' + str(p['id']) + '/summary'))
+            player_summary = json.loads(
+                HttpUtils.make_request('https://api.thescore.com/nba/players/' + str(p['id']) + '/summary'))
             player_summary[0]['full_name'] = p['full_name']
             player_summary_stats.append(player_summary[0])
         player_summary_stats.sort(key=lambda x: x['points'], reverse=True)
@@ -208,7 +197,7 @@ def players():
 
 @app.route("/briefing")
 def briefing():
-    next_game = json.loads(makeRequest('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=1'))
+    next_game = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=1'))
     next_game = decorate_schedule(next_game)
     if len(next_game) != 0:
         next_game = next_game[0]
@@ -221,7 +210,7 @@ def briefing():
         raise Exception("No previous game found")
     previous_game = previous_game[0]
 
-    standings = json.loads(makeRequest('http://api.thescore.com/nba/standings/'))
+    standings = json.loads(HttpUtils.make_request('http://api.thescore.com/nba/standings/'))
     condensed_standings = create_condensed_standings(standings)
 
     return jsonify({
@@ -374,7 +363,7 @@ def get_league_standings():
 
 
 def update_cache_with_all_standings():
-    standings = json.loads(makeRequest('http://api.thescore.com/nba/standings/'))
+    standings = json.loads(HttpUtils.make_request('http://api.thescore.com/nba/standings/'))
 
     conference_standings = [createConferenceStandings(standings, 'Eastern'),
                            createConferenceStandings(standings, 'Western')]
@@ -437,7 +426,7 @@ def findDomain(url):
 
 @app.route("/rr/content/latest")
 def get_main_rr_content():
-    soup = BeautifulSoup(makeRequest('https://www.raptorsrepublic.com/amp/', with_headers=True))
+    soup = BeautifulSoup(HttpUtils.make_request('https://www.raptorsrepublic.com/amp/', with_headers=True))
     items = []
     for item in soup.select('.amp-wp-article-header'):
         items.append({
@@ -452,7 +441,7 @@ def get_main_rr_content():
 @app.route("/rr/content/article/<hash>")
 def get_rr_article(hash):    
     url = decode_string(hash)
-    soup = BeautifulSoup(makeRequest(url, with_headers=True))
+    soup = BeautifulSoup(HttpUtils.make_request(url, with_headers=True))
     article = {   
         'title': soup.find('h1', class_='amp-wp-title').get_text(),
         'image': soup.find('amp-img', class_='attachment-large')['src'],
