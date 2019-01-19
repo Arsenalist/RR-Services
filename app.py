@@ -233,6 +233,7 @@ def briefing():
 
 def create_condensed_standings(standings):
     standings = createConferenceStandings(standings, 'Eastern')
+    standings = standings['standings']
     team_index = -1
     for i in range(0, len(standings)):
         if standings[i]["team"]["id"] == 5:
@@ -349,63 +350,86 @@ def salaries():
 
 @app.route("/standings/conference")
 def get_conference_standings():
-    result = get_from_general_cache('standings_conference')
+    result = get_from_general_cache('conference_standings')
     if result is None:
         update_cache_with_all_standings()
-        result = get_from_general_cache('standings_conference')
-    return jsonify({'html': result})
+        result = get_from_general_cache('conference_standings')
+    return jsonResponse(result)
 
 @app.route("/standings/division")
 def get_division_standings():
-    result = get_from_general_cache('standings_division')
+    result = get_from_general_cache('division_standings')
     if result is None:
         update_cache_with_all_standings()
-        result = get_from_general_cache('standings_division')
-    return jsonify({'html': result})
+        result = get_from_general_cache('division_standings')
+    return jsonResponse(result)
 
 @app.route("/standings/league")
 def get_league_standings():
-    result = get_from_general_cache('standings_league')
+    result = get_from_general_cache('league_standings')
     if result is None:
         update_cache_with_all_standings()
-        result = get_from_general_cache('standings_league')
-    return jsonify({'html': result})
+        result = get_from_general_cache('league_standings')
+    return jsonResponse(result)
 
 
 def update_cache_with_all_standings():
     standings = json.loads(makeRequest('http://api.thescore.com/nba/standings/'))
-    standings_html = {
-        'east': createStandingsHtml(createConferenceStandings(standings, 'Eastern'), 'conference', 'Eastern'),
-        'west': createStandingsHtml(createConferenceStandings(standings, 'Western'), 'conference', 'Western'),
-        'atlantic': createStandingsHtml(createDivisionStandings(standings, 'Atlantic'), 'division', 'Atlantic'),
-        'central': createStandingsHtml(createDivisionStandings(standings, 'Central'), 'division', 'Central'),
-        'southeast': createStandingsHtml(createDivisionStandings(standings, 'Southeast'), 'division', 'Southeast'),
-        'northwest': createStandingsHtml(createDivisionStandings(standings, 'Northwest'), 'division', 'Northwest'),
-        'pacific': createStandingsHtml(createDivisionStandings(standings, 'Pacific'), 'division', 'Pacific'),
-        'southwest': createStandingsHtml(createDivisionStandings(standings, 'Southwest'), 'division', 'Southwest'),
-        'league': createStandingsHtml(createLeagueStandings(standings), 'league', 'League')
-    }
-    store_in_general_cache('standings_conference', standings_html['east'] + standings_html['west'], 3600*2)
-    store_in_general_cache('standings_division', standings_html['atlantic'] + standings_html['central'] + 
-            standings_html['southeast'] + standings_html['northwest'] + standings_html['pacific'] + standings_html['southwest'], 3600*2)
-    store_in_general_cache('standings_league', standings_html['league'], 3600*2)
 
-def createStandingsHtml(standings, standings_type, standings_label):
-    return render_template('standings.jinja', standings=standings, standings_type=standings_type, standings_label=standings_label)
+    conference_standings = [createConferenceStandings(standings, 'Eastern'),
+                           createConferenceStandings(standings, 'Western')]
+    division_standings = [createDivisionStandings(standings, 'Atlantic'),
+                          createDivisionStandings(standings, 'Central'),
+                          createDivisionStandings(standings, 'Southeast'),
+                          createDivisionStandings(standings, 'Northwest'),
+                          createDivisionStandings(standings, 'Pacific'),
+                          createDivisionStandings(standings, 'Southwest')]
+    league_standings = [createLeagueStandings(standings)]
+
+    store_in_general_cache('conference_standings', create_standings_json(conference_standings))
+    store_in_general_cache('division_standings', create_standings_json(division_standings))
+    store_in_general_cache('league_standings', create_standings_json(league_standings))
+
+def create_standings_json(standings_list):
+    result = []
+    for sl in standings_list:
+        new_standings = []
+        for s in sl['standings']:
+            new_standings.append({
+                'team': s['team']['name'],
+                'record': s['short_record'],
+                'winning_percentage': s['winning_percentage'],
+                'conference_games_back': s['conference_games_back'],
+                'games_back': s['games_back'],
+                'last_ten_games_record': s['last_ten_games_record']
+            })
+        result.append({
+            'standings': new_standings,
+            'label': sl['label']
+        })
+    return json.dumps(result)
 
 def createConferenceStandings(standings, conference):
     filtered = list(filter(lambda record: record['conference'] == conference, standings))
     filtered.sort(key=lambda record: record['conference_rank'])
-    return filtered
-
+    return {
+        'label': conference,
+        'standings': filtered
+    }
 def createDivisionStandings(standings, division):
     filtered = list(filter(lambda record: record['division'] == division, standings))
     filtered.sort(key=lambda record: record['division_rank'])
-    return filtered
+    return {
+        'label': division,
+        'standings': filtered
+    }
 
 def createLeagueStandings(standings):
     standings.sort(key=lambda record: record['winning_percentage'], reverse=True)
-    return standings
+    return {
+        'label': 'League',
+        'standings': standings
+    }
 
 def findDomain(url):
     o = urlparse(url)
