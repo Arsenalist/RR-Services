@@ -1,7 +1,6 @@
 import json
 
-from services.utils.misc import considerCache
-from services.utils.httputils import HttpUtils
+from dataservices.utils.httputils import HttpUtils
 
 
 def get_results():
@@ -76,10 +75,10 @@ def createBoxScore(event, box_score, player_records):
     }
 
 
-def create_consolidated_box_score(content, event_id):
-    event = json.loads(considerCache('https://api.thescore.com/nba/events/' + event_id))
-    box_score = json.loads(considerCache('https://api.thescore.com' + event['box_score']['api_uri']))
+def create_consolidated_box_score(event_id):
+    event = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/events/' + event_id))
+    box_score = json.loads(HttpUtils.make_request('https://api.thescore.com' + event['box_score']['api_uri']))
     player_records = json.loads(
-        considerCache('https://api.thescore.com' + event['box_score']['api_uri'] + '/player_records'))
+        HttpUtils.make_request('https://api.thescore.com' + event['box_score']['api_uri'] + '/player_records'))
     content = createBoxScore(event, box_score, player_records)
     return content

@@ -1,8 +1,7 @@
 import json
 
-from services.utils.misc import considerCache
-from services.results import decorate_results
-from services.utils.httputils import HttpUtils
+from dataservices.results_service import decorate_results
+from dataservices.utils.httputils import HttpUtils
 
 
 def decorate_schedule(schedule):
@@ -36,7 +35,7 @@ def get_schedule():
 
 
 def get_previous_game():
-    previous_game = json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=1'))
+    previous_game = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/previous?rpp=1'))
     previous_game = decorate_results(previous_game)
     if (len(previous_game) == 0):
         raise Exception("No previous game found")

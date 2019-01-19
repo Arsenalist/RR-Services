@@ -1,10 +1,9 @@
 import json
 
-from services.utils.httputils import HttpUtils
-from services.utils.misc import store_in_general_cache
+from dataservices.utils.httputils import HttpUtils
 
 
-def create_condensed_standings(standings):
+def create_brief_standings(standings):
     standings = createConferenceStandings(standings, 'Eastern')
     standings = standings['standings']
     team_index = -1
@@ -37,10 +36,13 @@ def create_condensed_standings(standings):
         })
     return condensed_standings
 
+def get_standings():
+    return json.loads(HttpUtils.make_request('http://api.thescore.com/nba/standings/'))
+
 
 def get_standings_for_briefing():
     standings = json.loads(HttpUtils.make_request('http://api.thescore.com/nba/standings/'))
-    condensed_standings = create_condensed_standings(standings)
+    condensed_standings = create_brief_standings(standings)
     return condensed_standings
 
 
@@ -70,25 +72,31 @@ def createLeagueStandings(standings):
     }
 
 
-def update_cache_with_all_standings():
-    standings = json.loads(HttpUtils.make_request('http://api.thescore.com/nba/standings/'))
+def get_league_standings():
+    standings = get_standings()
+    league_standings = [createLeagueStandings(standings)]
+    return create_condensed_standings(league_standings)
 
-    conference_standings = [createConferenceStandings(standings, 'Eastern'),
-                            createConferenceStandings(standings, 'Western')]
+
+def get_division_standings():
+    standings = get_standings()
     division_standings = [createDivisionStandings(standings, 'Atlantic'),
                           createDivisionStandings(standings, 'Central'),
                           createDivisionStandings(standings, 'Southeast'),
                           createDivisionStandings(standings, 'Northwest'),
                           createDivisionStandings(standings, 'Pacific'),
                           createDivisionStandings(standings, 'Southwest')]
-    league_standings = [createLeagueStandings(standings)]
-
-    store_in_general_cache('conference_standings', create_standings_json(conference_standings))
-    store_in_general_cache('division_standings', create_standings_json(division_standings))
-    store_in_general_cache('league_standings', create_standings_json(league_standings))
+    return create_condensed_standings(division_standings)
 
 
-def create_standings_json(standings_list):
+def get_conference_standings():
+    standings = get_standings()
+    conference_standings = [createConferenceStandings(standings, 'Eastern'),
+                            createConferenceStandings(standings, 'Western')]
+    return create_condensed_standings(conference_standings)
+
+
+def create_condensed_standings(standings_list):
     result = []
     for sl in standings_list:
         new_standings = []
@@ -105,4 +113,4 @@ def create_standings_json(standings_list):
             'standings': new_standings,
             'label': sl['label']
         })
-    return json.dumps(result)
+    return result

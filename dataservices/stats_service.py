@@ -1,6 +1,6 @@
 import json
 
-from services.utils.httputils import HttpUtils
+from dataservices.utils.httputils import HttpUtils
 
 
 def get_player_summary_stats():
