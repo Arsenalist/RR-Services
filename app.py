@@ -1,15 +1,20 @@
 from flask import Flask
+
+from services.blog_content import get_web_articles, get_news, get_salaries
+from services.results import get_results, create_consolidated_box_score
+from services.schedule import get_schedule, get_previous_game, get_next_game
+from services.standings import get_standings_for_briefing, update_cache_with_all_standings
+from services.stats import get_player_summary_stats
+from services.utils.misc import get_from_general_cache, store_in_general_cache, considerCache, sanitize_content, \
+    encode_string, decode_string, get_redis_client
+
 app = Flask(__name__)
 import os
 from flask import jsonify
 from flask_cors import CORS
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse
-import hashlib
 import json
 import jinja2
-import base64
-from redis import StrictRedis
 from services.utils.httputils import HttpUtils
 
 CORS(app)
@@ -20,100 +25,19 @@ my_loader = jinja2.ChoiceLoader([
     ])
 app.jinja_loader = my_loader
 
-redis_client = StrictRedis.from_url(os.environ.get("REDIS_URL"), decode_responses=True)
+get_redis_client()
 
-
-def get_from_general_cache(key):
-    return redis_client.get(key)
-
-def store_in_general_cache(key, result, timeout=300):
-    redis_client.set(key, result)
-    redis_client.expire(key, timeout)
-
-
-def considerCache(endpoint, timeout=600):
-    key = hashlib.md5(endpoint.encode()).hexdigest()
-    result = get_from_general_cache(key)
-    if (result is None):
-        result = HttpUtils.make_request(endpoint)
-        if (key is not None and result is not None):
-            store_in_general_cache(key, result, timeout)
-    return result
-
-def createBoxScore(event, box_score, player_records):
-
-    # line score
-    away_team = event['away_team']
-    home_team = event['home_team']
-    line_scores_away = box_score['line_scores']['away']
-    line_scores_home = box_score['line_scores']['home']
-    away_score = box_score['score']['away']['score']
-    home_score = box_score['score']['home']['score']
-
-    # player records
-    away_records_starters = list(filter(lambda record: record['alignment'] == 'away' and record['started_game'] == True, player_records))
-    away_records_bench = list(filter(lambda record: record['alignment'] == 'away' and record['started_game'] == False and record['dnp_type'] is None, player_records))
-    away_records_dnp = list(filter(lambda record: record['alignment'] == 'away' and record['dnp_type'] is not None, player_records))
-    home_records_starters = list(filter(lambda record: record['alignment'] == 'home' and record['started_game'] == True, player_records))
-    home_records_bench = list(filter(lambda record: record['alignment'] == 'home' and record['started_game'] == False and record['dnp_type'] is None, player_records))
-    home_records_dnp = list(filter(lambda record: record['alignment'] == 'home' and record['dnp_type'] is not None, player_records))
-
-    # team records
-    away_team_records = box_score['team_records']['away']
-    home_team_records = box_score['team_records']['home']
-
-    return {
-        'away_records_starters': away_records_starters,
-        'away_records_bench': away_records_bench,
-        'away_records_dnp': away_records_dnp,
-        'home_records_starters': home_records_starters,
-        'home_records_bench': home_records_bench,
-        'home_records_dnp': home_records_dnp,
-        'home_team_records': [home_team_records],
-        'away_team_records': [away_team_records],
-        'away_team_name': away_team['name'],
-        'home_team_name': home_team['name'] ,    
-        'away_team_abbreviation': away_team['abbreviation'],
-        'home_team_abbreviation': home_team['abbreviation'] ,    
-        'away_score': away_score,
-        'home_score': home_score,
-        'line_scores_away': line_scores_away,
-        'line_scores_home': line_scores_home
-    }        
-
-def decorate_results(results):
-    for r in results:
-        location = ''
-        opposition = ''
-        if r['away_team']['abbreviation'] == "TOR":
-            location = "@"
-            opposition = r['home_team']['name']
-            if (r['box_score']['score']['away']['score'] > r['box_score']['score']['home']['score']):
-                result = "W"
-            else:
-                result = "L"
-        else:
-            location = "vs"
-            opposition = r['away_team']['name']
-            if (r['box_score']['score']['away']['score'] > r['box_score']['score']['home']['score']):
-                result = "L"
-            else:
-                result = "W"
-        r['display_string'] = result + ' ' + location + ' ' + opposition
-        r['event_id'] = r['api_uri'].split('/')[3]
-        r['score_string'] = str(r['box_score']['score']['away']['score']) + '-' + str(r['box_score']['score']['home']['score'])
-    return results
 
 @app.route("/results")
 def results():
     content = get_from_general_cache('results')
     if content is None:
-        results = decorate_results(json.loads(
-            HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/previous?rpp=10')))
+        results = get_results()
         content = json.dumps(results)
         store_in_general_cache('results', content)
 
     return jsonResponse(content)
+
 
 @app.route("/rr/podcasts")
 def podcasts():
@@ -123,95 +47,39 @@ def podcasts():
 def box(event_id):
     content = get_from_general_cache(event_id)
     if content is None:
-        event = json.loads(considerCache('https://api.thescore.com/nba/events/' + event_id))
-        box_score = json.loads(considerCache('https://api.thescore.com' + event['box_score']['api_uri']))
-        player_records = json.loads(considerCache('https://api.thescore.com' + event['box_score']['api_uri'] + '/player_records'))
-        content = createBoxScore(event, box_score, player_records)
+        content = create_consolidated_box_score(content, event_id)
         content = json.dumps(content)
         store_in_general_cache(event_id, content, 3600 * 24 * 7)        
     return jsonResponse(content)
 
 
-def decorate_schedule(schedule):
-    result = []    
-    i = 0
-    max_tv_schedules = 10
-    for game in schedule:
-        if i < max_tv_schedules:
-            detail = json.loads(HttpUtils.make_request('https://api.thescore.com' + game['api_uri']))
-            game['tv_schedule_display'] = createTvScheduleString(detail)
-        else:
-            game['tv_schedule_display'] = ""            
-        i = i + 1
-        result.append(game)
-
-        if game['away_team']['abbreviation'] == "TOR":
-            game['location'] = "@"
-            game['opposition'] = game['home_team']['name']
-        else:
-            game['location'] = "vs"
-            game['opposition'] = game['away_team']['name']
-
-        game['display_string'] = game['location'] + ' ' + game['opposition']
-    return result
-
 @app.route("/schedule")
 def schedule():
     content = get_from_general_cache('schedule')    
     if content is None:
-        schedule = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=-1'))
-        result = decorate_schedule(schedule)
+        result = get_schedule()
         content = json.dumps(result)
         store_in_general_cache('schedule', content, 3600 * 3)
     return jsonResponse(content)
 
-def createTvScheduleString(game):
-    tv_listings = []
-    if 'tv_listings_by_country_code' in game is not None:
-        if 'ca' in game['tv_listings_by_country_code'] is not None:
-            tv_listings.extend(game['tv_listings_by_country_code']['ca'])
-        if 'us' in game['tv_listings_by_country_code'] is not None:
-            tv_listings.extend(game['tv_listings_by_country_code']['us'])
-    result = ""
-    for tv in tv_listings:
-        result += tv['short_name'] + ", "
-    if len(result) > 0:
-        result = result[:-2]
-    return result
 
 @app.route("/players/stats")
 def players():
     result = get_from_general_cache('player_summary_stats')
     if result is None:
-        player_summary_stats = []
-        players = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/5/players'))
-        for p in players:
-            player_summary = json.loads(
-                HttpUtils.make_request('https://api.thescore.com/nba/players/' + str(p['id']) + '/summary'))
-            player_summary[0]['full_name'] = p['full_name']
-            player_summary_stats.append(player_summary[0])
-        player_summary_stats.sort(key=lambda x: x['points'], reverse=True)
+        player_summary_stats = get_player_summary_stats()
         result = json.dumps(player_summary_stats)
         store_in_general_cache('player_summary_stats', result, 3600 * 24)
     return jsonResponse(result)
 
+
 @app.route("/briefing")
 def briefing():
-    next_game = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/upcoming?rpp=1'))
-    next_game = decorate_schedule(next_game)
-    if len(next_game) != 0:
-        next_game = next_game[0]
-    else:
-        next_game = None
+    next_game = get_next_game()
 
-    previous_game = json.loads(considerCache('https://api.thescore.com/nba/teams/5/events/previous?rpp=1'))
-    previous_game = decorate_results(previous_game)
-    if (len(previous_game) == 0):
-        raise Exception("No previous game found")
-    previous_game = previous_game[0]
+    previous_game = get_previous_game()
 
-    standings = json.loads(HttpUtils.make_request('http://api.thescore.com/nba/standings/'))
-    condensed_standings = create_condensed_standings(standings)
+    condensed_standings = get_standings_for_briefing()
 
     return jsonify({
         'next_game': next_game,
@@ -220,122 +88,26 @@ def briefing():
     })
 
 
-def create_condensed_standings(standings):
-    standings = createConferenceStandings(standings, 'Eastern')
-    standings = standings['standings']
-    team_index = -1
-    for i in range(0, len(standings)):
-        if standings[i]["team"]["id"] == 5:
-            team_index = i
-            break
-    # didn't find the team
-    if team_index == -1:
-        raise Exception("Team not found")
-    # get the two closest teams around the Raptors
-    # first place
-    if team_index == 0:
-        start_index = 0
-        end_index = 2
-    # last place
-    elif team_index == len(standings) - 1:
-        start_index = len(standings) - 1 - 2
-        end_index = len(standings) - 1
-    else:
-        start_index = team_index - 1
-        end_index = team_index + 1
-    standings = standings[start_index:end_index + 1]
-    condensed_standings = []
-    for s in standings:
-        condensed_standings.append({
-            'name': s['team']['name'],
-            'record': s['short_record'],
-            'conference_games_back': s['conference_games_back'],
-        })
-    return condensed_standings
-
-
 @app.route("/news")
 def injuries():
-    text = considerCache('https://www.rotowire.com/basketball/news.php?team=TOR')
-    news_updates = []
-    soup = BeautifulSoup(text)
-    for s in soup.find_all('div', 'news-update'):
-        update = {
-                'name': s.find('a', 'news-update__player-link').get_text(),
-                'headline': s.find('div', 'news-update__headline').get_text(),
-                'timestamp': s.find('div', 'news-update__timestamp').get_text(),
-                'text': s.find('div', 'news-update__news').get_text()
-        }
-        news_updates.append(update)
+    news_updates = get_news()
     return jsonify(news_updates)
+
 
 @app.route("/articles")
 def web_articles():
     
-    web_articles = json.loads(considerCache(os.environ.get('WEB_ARTICLES_ENDPOINT', '')))
-    results = []
-    for a in web_articles:
-        article = {
-                'title': a['description'],
-                'description': a['extended'],
-                'href': a['href'],
-                'domain': findDomain(a['href'])
-        }
-        results.append(article)
+    results = get_web_articles()
     return jsonify(results)
 
-def remove_attrs(soup):
-    for tag in soup.findAll(True): 
-        tag.attrs = None
-    return soup
-
-
-def decorate_table_with_material_design(content):
-    replacements = [
-        {
-        'target': 'class="suppress_glossary sortable stats_table"',
-        'replacement': 'role="grid" class="mat-table"'
-        },
-        {
-        'target': '<table ',
-        'replacement': '<table role="grid" class="mat-table" '
-        },
-        {
-        'target': '<td>',
-        'replacement': '<td role="gridcell" class="mat-cell">'
-        },
-        {
-        'target': '<th>',
-        'replacement': '<th role="columnheader" class="mat-header-cell">'
-        },
-        {
-        'target': '<tr>',
-        'replacement': '<tr role="row" class="mat-row">'
-        }
-    ]
-    for r in replacements:
-        content = content.replace(r['target'], r['replacement'])
-    return content
 
 @app.route("/salaries")
 def salaries():
     
-    text = considerCache('https://www.basketball-reference.com/contracts/TOR.html')
-    soup = BeautifulSoup(text)
-
-    results = {}
-
-    # get table
-    contracts = soup.select('#contracts')
-    for c in contracts:
-        for a in c.find_all('a'):
-                a.parent.append(a.get_text())
-                a.decompose()
-
-    if contracts is not None and len(contracts) != 0:
-        results['contracts'] = decorate_table_with_material_design(str(remove_attrs(contracts[0])))
+    results = get_salaries()
 
     return jsonify(results)
+
 
 @app.route("/standings/conference")
 def get_conference_standings():
@@ -361,68 +133,6 @@ def get_league_standings():
         result = get_from_general_cache('league_standings')
     return jsonResponse(result)
 
-
-def update_cache_with_all_standings():
-    standings = json.loads(HttpUtils.make_request('http://api.thescore.com/nba/standings/'))
-
-    conference_standings = [createConferenceStandings(standings, 'Eastern'),
-                           createConferenceStandings(standings, 'Western')]
-    division_standings = [createDivisionStandings(standings, 'Atlantic'),
-                          createDivisionStandings(standings, 'Central'),
-                          createDivisionStandings(standings, 'Southeast'),
-                          createDivisionStandings(standings, 'Northwest'),
-                          createDivisionStandings(standings, 'Pacific'),
-                          createDivisionStandings(standings, 'Southwest')]
-    league_standings = [createLeagueStandings(standings)]
-
-    store_in_general_cache('conference_standings', create_standings_json(conference_standings))
-    store_in_general_cache('division_standings', create_standings_json(division_standings))
-    store_in_general_cache('league_standings', create_standings_json(league_standings))
-
-def create_standings_json(standings_list):
-    result = []
-    for sl in standings_list:
-        new_standings = []
-        for s in sl['standings']:
-            new_standings.append({
-                'team': s['team']['name'],
-                'record': s['short_record'],
-                'winning_percentage': s['winning_percentage'],
-                'conference_games_back': s['conference_games_back'],
-                'games_back': s['games_back'],
-                'last_ten_games_record': s['last_ten_games_record']
-            })
-        result.append({
-            'standings': new_standings,
-            'label': sl['label']
-        })
-    return json.dumps(result)
-
-def createConferenceStandings(standings, conference):
-    filtered = list(filter(lambda record: record['conference'] == conference, standings))
-    filtered.sort(key=lambda record: record['conference_rank'])
-    return {
-        'label': conference,
-        'standings': filtered
-    }
-def createDivisionStandings(standings, division):
-    filtered = list(filter(lambda record: record['division'] == division, standings))
-    filtered.sort(key=lambda record: record['division_rank'])
-    return {
-        'label': division,
-        'standings': filtered
-    }
-
-def createLeagueStandings(standings):
-    standings.sort(key=lambda record: record['winning_percentage'], reverse=True)
-    return {
-        'label': 'League',
-        'standings': standings
-    }
-
-def findDomain(url):
-    o = urlparse(url)
-    return o.hostname
 
 @app.route("/rr/content/latest")
 def get_main_rr_content():
@@ -450,14 +160,8 @@ def get_rr_article(hash):
     }
     return jsonify(article)
 
-def sanitize_content(content):
-    return content.replace("<amp-", "<").replace("</amp-", "</")
 
-def encode_string(to_encode):
-    return base64.b64encode(to_encode.encode()).decode('utf-8')
-
-def decode_string(to_decode):
-    return base64.b64decode(to_decode.encode('utf-8')).decode()
+application = app
 
 def jsonResponse(content):
     response = app.response_class(
@@ -466,9 +170,9 @@ def jsonResponse(content):
         mimetype='application/json'
     )
     return response
-  
-application = app
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    application.run(debug=True, host='0.0.0.0', port=port)   
+    application.run(debug=True, host='0.0.0.0', port=port)
+
+
