@@ -8,7 +8,6 @@ from businessservices import rrapp
 
 
 def create_flask_app():
-    global app
     app = Flask(__name__)
     CORS(app)
     custom_template_loader = jinja2.ChoiceLoader([
