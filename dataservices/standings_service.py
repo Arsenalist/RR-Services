@@ -4,7 +4,7 @@ from dataservices.utils.httputils import HttpUtils
 
 
 def create_brief_standings(standings):
-    standings = createConferenceStandings(standings, 'Eastern')
+    standings = create_conference_standings(standings, 'Eastern')
     standings = standings['standings']
     team_index = -1
     for i in range(0, len(standings)):
@@ -36,6 +36,7 @@ def create_brief_standings(standings):
         })
     return condensed_standings
 
+
 def get_standings():
     return json.loads(HttpUtils.make_request('http://api.thescore.com/nba/standings/'))
 
@@ -46,7 +47,7 @@ def get_standings_for_briefing():
     return condensed_standings
 
 
-def createConferenceStandings(standings, conference):
+def create_conference_standings(standings, conference):
     filtered = list(filter(lambda record: record['conference'] == conference, standings))
     filtered.sort(key=lambda record: record['conference_rank'])
     return {
@@ -55,7 +56,7 @@ def createConferenceStandings(standings, conference):
     }
 
 
-def createDivisionStandings(standings, division):
+def create_division_standings(standings, division):
     filtered = list(filter(lambda record: record['division'] == division, standings))
     filtered.sort(key=lambda record: record['division_rank'])
     return {
@@ -64,7 +65,7 @@ def createDivisionStandings(standings, division):
     }
 
 
-def createLeagueStandings(standings):
+def create_league_standings(standings):
     standings.sort(key=lambda record: record['winning_percentage'], reverse=True)
     return {
         'label': 'League',
@@ -74,25 +75,25 @@ def createLeagueStandings(standings):
 
 def get_league_standings():
     standings = get_standings()
-    league_standings = [createLeagueStandings(standings)]
+    league_standings = [create_league_standings(standings)]
     return create_condensed_standings(league_standings)
 
 
 def get_division_standings():
     standings = get_standings()
-    division_standings = [createDivisionStandings(standings, 'Atlantic'),
-                          createDivisionStandings(standings, 'Central'),
-                          createDivisionStandings(standings, 'Southeast'),
-                          createDivisionStandings(standings, 'Northwest'),
-                          createDivisionStandings(standings, 'Pacific'),
-                          createDivisionStandings(standings, 'Southwest')]
+    division_standings = [create_division_standings(standings, 'Atlantic'),
+                          create_division_standings(standings, 'Central'),
+                          create_division_standings(standings, 'Southeast'),
+                          create_division_standings(standings, 'Northwest'),
+                          create_division_standings(standings, 'Pacific'),
+                          create_division_standings(standings, 'Southwest')]
     return create_condensed_standings(division_standings)
 
 
 def get_conference_standings():
     standings = get_standings()
-    conference_standings = [createConferenceStandings(standings, 'Eastern'),
-                            createConferenceStandings(standings, 'Western')]
+    conference_standings = [create_conference_standings(standings, 'Eastern'),
+                            create_conference_standings(standings, 'Western')]
     return create_condensed_standings(conference_standings)
 
 

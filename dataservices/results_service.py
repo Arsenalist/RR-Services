@@ -11,8 +11,6 @@ def get_results():
 
 def decorate_results(results):
     for r in results:
-        location = ''
-        opposition = ''
         if r['away_team']['abbreviation'] == "TOR":
             location = "@"
             opposition = r['home_team']['name']
@@ -33,7 +31,7 @@ def decorate_results(results):
     return results
 
 
-def createBoxScore(event, box_score, player_records):
+def create_box_score(event, box_score, player_records):
 
     # line score
     away_team = event['away_team']
@@ -80,5 +78,5 @@ def create_consolidated_box_score(event_id):
     box_score = json.loads(HttpUtils.make_request('https://api.thescore.com' + event['box_score']['api_uri']))
     player_records = json.loads(
         HttpUtils.make_request('https://api.thescore.com' + event['box_score']['api_uri'] + '/player_records'))
-    content = createBoxScore(event, box_score, player_records)
+    content = create_box_score(event, box_score, player_records)
     return content
