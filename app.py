@@ -222,18 +222,25 @@ def briefing():
     previous_game = previous_game[0]
 
     standings = json.loads(makeRequest('http://api.thescore.com/nba/standings/'))
-    standings = createConferenceStandings(standings, 'Eastern')
+    condensed_standings = create_condensed_standings(standings)
 
+    return jsonify({
+        'next_game': next_game,
+        'previous_game': previous_game,
+        'standings': condensed_standings
+    })
+
+
+def create_condensed_standings(standings):
+    standings = createConferenceStandings(standings, 'Eastern')
     team_index = -1
     for i in range(0, len(standings)):
         if standings[i]["team"]["id"] == 5:
             team_index = i
             break
-
     # didn't find the team
     if team_index == -1:
         raise Exception("Team not found")
-
     # get the two closest teams around the Raptors
     # first place
     if team_index == 0:
@@ -246,7 +253,7 @@ def briefing():
     else:
         start_index = team_index - 1
         end_index = team_index + 1
-    standings = standings[start_index:end_index+1]
+    standings = standings[start_index:end_index + 1]
     condensed_standings = []
     for s in standings:
         condensed_standings.append({
@@ -254,12 +261,8 @@ def briefing():
             'record': s['short_record'],
             'conference_games_back': s['conference_games_back'],
         })
+    return condensed_standings
 
-    return jsonify({
-        'next_game': next_game,
-        'previous_game': previous_game,
-        'standings': condensed_standings
-    })
 
 @app.route("/news")
 def injuries():
