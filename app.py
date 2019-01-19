@@ -1,19 +1,26 @@
+import os
+import jinja2
+
 from flask import Flask
+from flask_cors import CORS
 
 from businessservices import rrapp
 
-app = Flask(__name__)
-import os
-from flask_cors import CORS
-import jinja2
 
-CORS(app)
+def create_flask_app():
+    global app
+    app = Flask(__name__)
+    CORS(app)
+    custom_template_loader = jinja2.ChoiceLoader([
+        app.jinja_loader,
+        jinja2.FileSystemLoader(['./templates']),
+    ])
+    app.jinja_loader = custom_template_loader
+    return app
 
-my_loader = jinja2.ChoiceLoader([
-    app.jinja_loader,
-    jinja2.FileSystemLoader(['./templates']),
-])
-app.jinja_loader = my_loader
+
+app = create_flask_app()
+
 
 @app.route("/results")
 def results():
@@ -85,9 +92,6 @@ def get_rr_article(hash):
     return json_response(rrapp.get_article(hash))
 
 
-application = app
-
-
 def json_response(content):
     response = app.response_class(
         response=content,
@@ -97,6 +101,7 @@ def json_response(content):
     return response
 
 
+application = app
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     application.run(debug=True, host='0.0.0.0', port=port)
