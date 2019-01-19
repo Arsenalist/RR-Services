@@ -25,8 +25,8 @@ def store_in_general_cache(key, result, timeout=300):
 def considerCache(endpoint, timeout=600):
     key = hashlib.md5(endpoint.encode()).hexdigest()
     result = get_from_general_cache(key)
-    if (result is None):
+    if result is None:
         result = HttpUtils.make_request(endpoint)
-        if (key is not None and result is not None):
+        if key is not None and result is not None:
             store_in_general_cache(key, result, timeout)
     return result
