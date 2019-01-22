@@ -94,6 +94,10 @@ def get_rr_article(hash):
 def get_players_instagram_feed():
     return json_response(rrapp.get_players_instagram_feed())
 
+@app.route("/current-events")
+def get_current_events():
+    return json_response(rrapp.get_current_events())
+
 def json_response(content):
     response = app.response_class(
         response=content,

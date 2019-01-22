@@ -59,3 +59,7 @@ def get_box_score(event_id):
 
 def get_players_instagram_feed():
     return cache.consider_cache("players_instagram_feed", blog_content.get_players_instagram_feed)
+
+
+def get_current_events():
+    return cache.consider_cache('current_events', schedule_service.get_current_events)
