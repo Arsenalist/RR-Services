@@ -80,3 +80,7 @@ def get_article(hash):
         'author': soup.find('span', class_='amp-wp-author').get_text()
     }
     return article
+
+
+def get_players_instagram_feed():
+    return json.loads(HttpUtils.make_request('https://forums.raptorsrepublic.com/insta.json'))

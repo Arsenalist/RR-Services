@@ -56,3 +56,6 @@ def get_schedule():
 
 def get_box_score(event_id):
     return cache.consider_cache("box_score_" + event_id, results_service.create_consolidated_box_score, event_id)
+
+def get_players_instagram_feed():
+    return cache.consider_cache("players_instagram_feed", blog_content.get_players_instagram_feed)

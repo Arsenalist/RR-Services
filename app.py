@@ -90,6 +90,9 @@ def get_main_rr_content():
 def get_rr_article(hash):
     return json_response(rrapp.get_article(hash))
 
+@app.route("/players-instagram")
+def get_players_instagram_feed():
+    return json_response(rrapp.get_players_instagram_feed())
 
 def json_response(content):
     response = app.response_class(
