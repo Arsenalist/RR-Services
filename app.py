@@ -82,21 +82,34 @@ def get_league_standings():
 
 
 @app.route("/rr/content/latest")
-def get_main_rr_content():
+def get_latest():
     return json_response(rrapp.get_latest())
+
+
+@app.route("/rr/content/quick-reaction")
+def get_quick_reaction():
+    return json_response(rrapp.get_quick_reaction())
+
+
+@app.route("/rr/content/morning-coffee")
+def get_morning_coffee():
+    return json_response(rrapp.get_morning_coffee())
 
 
 @app.route("/rr/content/article/<hash>")
 def get_rr_article(hash):
     return json_response(rrapp.get_article(hash))
 
+
 @app.route("/players-instagram")
 def get_players_instagram_feed():
     return json_response(rrapp.get_players_instagram_feed())
 
+
 @app.route("/current-events")
 def get_current_events():
     return json_response(rrapp.get_current_events())
+
 
 def json_response(content):
     response = app.response_class(

@@ -69,8 +69,20 @@ def get_salaries():
     return results
 
 
+def get_quick_reaction():
+    return parse_amp_article_list('https://www.raptorsrepublic.com/category/quick-reaction/amp/')
+
+
+def get_morning_coffee():
+    return parse_amp_article_list('https://www.raptorsrepublic.com/category/morning-coffee/amp/')
+
+
 def get_latest():
-    soup = BeautifulSoup(HttpUtils.make_request('https://www.raptorsrepublic.com/amp/', with_headers=True))
+    return parse_amp_article_list('https://www.raptorsrepublic.com/amp/')
+
+
+def parse_amp_article_list(url):
+    soup = BeautifulSoup(HttpUtils.make_request(url, with_headers=True))
     items = []
     for item in soup.select('.amp-wp-article-header'):
         items.append({
