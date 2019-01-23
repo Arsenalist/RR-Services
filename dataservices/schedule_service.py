@@ -4,6 +4,7 @@ from dataservices.results_service import decorate_results
 from dataservices.utils.httputils import HttpUtils
 from dataservices.utils.images import get_team_images
 
+
 def decorate_schedule(schedule):
     result = []
     i = 0
@@ -20,9 +21,11 @@ def decorate_schedule(schedule):
         if game['away_team']['abbreviation'] == "TOR":
             game['location'] = "@"
             game['opposition'] = game['home_team']['name']
+            game['opposition_logos'] = get_team_images(game['home_team'])
         else:
             game['location'] = "vs"
             game['opposition'] = game['away_team']['name']
+            game['opposition_logos'] = get_team_images(game['away_team'])
 
         game['display_string'] = game['location'] + ' ' + game['opposition']
     return result
