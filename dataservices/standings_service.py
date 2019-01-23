@@ -1,6 +1,7 @@
 import json
 
 from dataservices.utils.httputils import HttpUtils
+from dataservices.utils.images import get_team_images
 
 
 def create_brief_standings(standings):
@@ -108,7 +109,8 @@ def create_condensed_standings(standings_list):
                 'winning_percentage': s['winning_percentage'],
                 'conference_games_back': s['conference_games_back'],
                 'games_back': s['games_back'],
-                'last_ten_games_record': s['last_ten_games_record']
+                'last_ten_games_record': s['last_ten_games_record'],
+                'logos': get_team_images(s['team'])
             })
         result.append({
             'standings': new_standings,
