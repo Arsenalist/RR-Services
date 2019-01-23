@@ -9,7 +9,20 @@ from dataservices.utils.misc import remove_attrs, decorate_table_with_material_d
 
 
 def get_podcasts():
-    return json.loads(HttpUtils.make_request('https://assets.raptorsrepublic.com/rapcast.json'))
+    feed = json.loads(HttpUtils.make_request('https://assets.raptorsrepublic.com/rapcast.json'))
+    result = []
+    max_results = 20
+    items = feed['rss']['channel']['item']
+    if len(items) > max_results:
+        items = items[:max_results]
+    for item in items:
+        result.append({
+            'title': item['title']['#text'],
+            'description': item['description']['#text'],
+            'pubDate': item['pubDate']['#text'],
+            'url': item['enclosure']['@url']
+        })
+    return result
 
 
 def get_web_articles():
