@@ -1,6 +1,7 @@
 import json
 
 from dataservices.utils.httputils import HttpUtils
+from dataservices.utils.images import get_team_images
 
 
 def get_results():
@@ -12,6 +13,7 @@ def get_results():
 def decorate_results(results):
     for r in results:
         if r['away_team']['abbreviation'] == "TOR":
+            logos = get_team_images(r['home_team'])
             location = "@"
             opposition = r['home_team']['name']
             if (r['box_score']['score']['away']['score'] > r['box_score']['score']['home']['score']):
@@ -19,12 +21,14 @@ def decorate_results(results):
             else:
                 result = "L"
         else:
+            logos = get_team_images(r['away_team'])
             location = "vs"
             opposition = r['away_team']['name']
             if (r['box_score']['score']['away']['score'] > r['box_score']['score']['home']['score']):
                 result = "L"
             else:
                 result = "W"
+        r['opposition_logos'] = logos
         r['display_string'] = result + ' ' + location + ' ' + opposition
         r['event_id'] = r['api_uri'].split('/')[3]
         r['score_string'] = str(r['box_score']['score']['away']['score']) + '-' + str(r['box_score']['score']['home']['score'])
