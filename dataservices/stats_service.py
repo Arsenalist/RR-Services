@@ -41,7 +41,6 @@ def get_player_game_log(player_id):
             "field_goals_made": pr["field_goals_made"],
             "free_throws_attempted": pr["free_throws_attempted"],
             "free_throws_made": pr["free_throws_made"],
-            "games_started": pr["games_started"],
             "minutes": pr["minutes"],
             "personal_fouls": pr["personal_fouls"],
             "plus_minus": pr["plus_minus"],
@@ -53,7 +52,6 @@ def get_player_game_log(player_id):
             "steals": pr["steals"],
             "three_point_field_goals_attempted": pr["three_point_field_goals_attempted"],
             "three_point_field_goals_made": pr["three_point_field_goals_made"],
-            "three_point_field_goals_percentage": pr["three_point_field_goals_percentage"],
             "turnovers": pr["turnovers"]
         })
 

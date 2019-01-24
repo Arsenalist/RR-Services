@@ -62,6 +62,7 @@ def create_box_score(event, box_score, player_records):
     home_team_logos = get_team_images(event['home_team'])
 
     return {
+        'event_id': event['id'],
         'away_records_starters': away_records_starters,
         'away_records_bench': away_records_bench,
         'away_records_dnp': away_records_dnp,
