@@ -31,7 +31,7 @@ def get_player_game_log(player_id):
         player_game_log.append({
             "game_date": pr['event']['game_date'],
             "opposition": opposition,
-            "event_id": pr["id"],
+            "event_id": pr["event"]["id"],
             "assists": pr["assists"],
             "blocked_shots": pr["blocked_shots"],
             "dnp_details": pr["dnp_details"],
