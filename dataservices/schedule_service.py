@@ -72,7 +72,7 @@ def create_tv_schedule_string(game):
 
 
 def get_current_events():
-    current_events = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/4/events/current'))
+    current_events = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/current'))
     result = []
     for c in current_events:
         result.append({
