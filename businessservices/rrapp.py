@@ -73,3 +73,7 @@ def get_players_instagram_feed():
 
 def get_current_events():
     return cache.consider_cache('current_events', schedule_service.get_current_events)
+
+
+def get_player_game_log(player_id):
+    return cache.consider_cache("player_game_log_" + player_id, stats_service.get_player_game_log, player_id)

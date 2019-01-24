@@ -111,6 +111,11 @@ def get_current_events():
     return json_response(rrapp.get_current_events())
 
 
+@app.route("/player-game-log/<player_id>")
+def get_player_game_log(player_id):
+    return json_response(rrapp.get_player_game_log(player_id))
+
+
 def json_response(content):
     response = app.response_class(
         response=content,
