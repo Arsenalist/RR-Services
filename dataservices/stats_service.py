@@ -1,6 +1,7 @@
 import json
 
 from dataservices.utils.httputils import HttpUtils
+from dataservices.utils.images import get_player_images
 
 
 def get_player_summary_stats():
@@ -55,4 +56,19 @@ def get_player_game_log(player_id):
             "turnovers": pr["turnovers"]
         })
 
-    return player_game_log
+    return {
+        "game_log": player_game_log,
+        "player": get_player_info(player_id)
+    }
+
+
+def get_player_info(player_id):
+    player = json.loads(HttpUtils.make_request('https://api.thescore.com/basketball/players/'
+                                               + str(player_id)))
+    return {
+        "headshots": get_player_images(player),
+        "full_name": player["full_name"],
+        "number": player["number"],
+        "position": player["position"],
+        "id": player["id"]
+    }
