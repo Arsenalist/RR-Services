@@ -63,12 +63,32 @@ def get_player_game_log(player_id):
 
 
 def get_player_info(player_id):
-    player = json.loads(HttpUtils.make_request('https://api.thescore.com/basketball/players/'
-                                               + str(player_id)))
+    summary = json.loads(HttpUtils.make_request('https://api.thescore.com/nba/players/'
+                                               + str(player_id) + '/summary'))
+
+    if len(summary) == 0:
+        raise Exception("Player not found " + player_id)
+    print (summary)
+    summary = summary[0]
+    player = summary["player"]
+
     return {
         "headshots": get_player_images(player),
         "full_name": player["full_name"],
         "number": player["number"],
         "position": player["position"],
-        "id": player["id"]
+        "season_averages": {
+            "minutes_average": summary["minutes_average"],
+            "points_average": summary["points_average"],
+            "rebounds_total_average": summary["rebounds_total_average"],
+            "assists_average": summary["assists_average"],
+            "steals_average": summary["steals_average"],
+            "blocked_shots_average": summary["blocked_shots_average"],
+            "field_goals_percentage": summary["field_goals_percentage"],
+            "three_point_field_goals_percentage": summary["three_point_field_goals_percentage"],
+            "free_throws_percentage": summary["free_throws_percentage"],
+            "turnovers_average": summary["turnovers_average"],
+            "games": summary["games"],
+            "usage_percentage": summary["usage_percentage"],
+        }
     }
