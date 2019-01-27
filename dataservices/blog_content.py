@@ -98,13 +98,26 @@ def parse_amp_article_list(url):
 def get_article(hash):
     url = decode_string(hash)
     soup = BeautifulSoup(HttpUtils.make_request(url, with_headers=True))
+    disqus_identifier = "raptorsrepublic-" + get_post_id(soup)
     article = {
         'title': soup.find('h1', class_='amp-wp-title').get_text(),
         'image': soup.find('amp-img', class_='attachment-large')['src'],
         'html': sanitize_content(str(soup.find('div', class_='the_content'))),
-        'author': soup.find('span', class_='amp-wp-author').get_text()
+        'author': soup.find('span', class_='amp-wp-author').get_text(),
+        'disqus_identifier': disqus_identifier
     }
     return article
+
+
+# We're trying to parse <body class="body single-post 96993 post-id-96993 singular-96993 design_1_wrapper">
+def get_post_id(soup):
+    classes = soup.find('body').attrs['class']
+    for c in classes:
+        if c.startswith("post-id"):
+            class_chunks = c.split("-")
+            if len(class_chunks) == 3:
+                return class_chunks[2]
+    raise Exception("Could not parse disqus ID")
 
 
 def get_players_instagram_feed():
