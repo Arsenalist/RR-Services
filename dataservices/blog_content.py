@@ -127,7 +127,7 @@ def get_youtube_feed():
         .format(client_key, channel_id)
     youtube_feed = json.loads(HttpUtils.make_request(url, with_headers=True))
     if 'items' not in youtube_feed:
-        raise Exception("Could not get YouTube feed, instead got: " + youtube_feed)
+        raise Exception("Could not get YouTube feed, instead got: " + str(youtube_feed))
     return condensed_youtube_feed(youtube_feed)
 
 
