@@ -77,3 +77,7 @@ def get_current_events():
 
 def get_player_game_log(player_id):
     return cache.consider_cache("player_game_log_" + player_id, stats_service.get_player_game_log, player_id)
+
+
+def get_youtube_feed():
+    return cache.consider_cache("get_youtube_feed", blog_content.get_youtube_feed)

@@ -120,5 +120,25 @@ def get_post_id(soup):
     raise Exception("Could not parse disqus ID")
 
 
+def get_youtube_feed():
+    client_key = os.environ.get('YOUTUBE_CLIENT_API_KEY')
+    channel_id = 'UCr7Qh5Ks10ub49U6sCmywoA'
+    url = 'https://www.googleapis.com/youtube/v3/search?key={}&channelId={}&part=snippet,id&order=date&maxResults=20' \
+        .format(client_key, channel_id)
+    return condensed_youtube_feed(json.loads(HttpUtils.make_request(url, with_headers=True)))
+
+
+def condensed_youtube_feed(feed):
+    items = []
+    for item in feed["items"]:
+        items.append({
+            'videoId': item['id']['videoId'],
+            'thumbnail': item['snippet']['thumbnails']['high']['url'],
+            'title': item['snippet']['title'],
+            'publishedAt': item['snippet']['publishedAt']
+        })
+    return items
+
+
 def get_players_instagram_feed():
     return json.loads(HttpUtils.make_request('https://forums.raptorsrepublic.com/insta.json'))

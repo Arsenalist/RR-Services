@@ -116,6 +116,11 @@ def get_player_game_log(player_id):
     return json_response(rrapp.get_player_game_log(player_id))
 
 
+@app.route("/youtube-feed")
+def get_youtube_feed():
+    return json_response(rrapp.get_youtube_feed())
+
+
 def json_response(content):
     response = app.response_class(
         response=content,
