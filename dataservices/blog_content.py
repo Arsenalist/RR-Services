@@ -125,7 +125,10 @@ def get_youtube_feed():
     channel_id = 'UCr7Qh5Ks10ub49U6sCmywoA'
     url = 'https://www.googleapis.com/youtube/v3/search?key={}&channelId={}&part=snippet,id&order=date&maxResults=20' \
         .format(client_key, channel_id)
-    return condensed_youtube_feed(json.loads(HttpUtils.make_request(url, with_headers=True)))
+    youtube_feed = json.loads(HttpUtils.make_request(url, with_headers=True))
+    if 'items' not in youtube_feed:
+        raise Exception("Could not get YouTube feed, instead got: " + youtube_feed)
+    return condensed_youtube_feed(youtube_feed)
 
 
 def condensed_youtube_feed(feed):
