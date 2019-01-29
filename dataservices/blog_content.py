@@ -25,7 +25,8 @@ def get_podcasts(podcast_type):
                 'title': item['title']['#text'],
                 'description': item['description']['#text'],
                 'pubDate': item['pubDate']['#text'],
-                'url': item['enclosure']['@url']
+                'url': str(item['enclosure']['@url']),
+                'playerUrl': str(item['enclosure']['@url']).replace('.mp3', '?').replace('traffic', 'player')
             })
         if len(result) > max_results:
             break
