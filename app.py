@@ -26,9 +26,9 @@ def results():
     return json_response(rrapp.get_results())
 
 
-@app.route("/rr/podcasts")
-def podcasts():
-    return json_response(rrapp.get_podcasts())
+@app.route("/rr/podcasts/<podcast_type>")
+def podcasts(podcast_type):
+    return json_response(rrapp.get_podcasts(podcast_type))
 
 
 @app.route("/box/nba/events/<event_id>")

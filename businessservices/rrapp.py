@@ -7,8 +7,8 @@ def get_results():
     return cache.consider_cache('results', results_service.get_results)
 
 
-def get_podcasts():
-    return cache.consider_cache('podcasts', blog_content.get_podcasts)
+def get_podcasts(podcast_type):
+    return cache.consider_cache('podcasts_' + podcast_type, blog_content.get_podcasts, podcast_type)
 
 
 def get_web_articles():

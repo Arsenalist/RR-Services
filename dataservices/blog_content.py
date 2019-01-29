@@ -7,21 +7,28 @@ from dataservices.utils.httputils import HttpUtils
 from dataservices.utils.misc import remove_attrs, decorate_table_with_material_design, findDomain, encode_string, \
     decode_string, sanitize_content
 
+podcast_string_map = {
+    'reaction': 'reaction',
+    'talking-raptors': 'talking raptors',
+    'weekly': 'weekly'
+}
 
-def get_podcasts():
+
+def get_podcasts(podcast_type):
     feed = json.loads(HttpUtils.make_request('https://assets.raptorsrepublic.com/rapcast.json'))
     result = []
     max_results = 20
     items = feed['rss']['channel']['item']
-    if len(items) > max_results:
-        items = items[:max_results]
     for item in items:
-        result.append({
-            'title': item['title']['#text'],
-            'description': item['description']['#text'],
-            'pubDate': item['pubDate']['#text'],
-            'url': item['enclosure']['@url']
-        })
+        if podcast_string_map[podcast_type].lower() in str(item['title']['#text']).lower():
+            result.append({
+                'title': item['title']['#text'],
+                'description': item['description']['#text'],
+                'pubDate': item['pubDate']['#text'],
+                'url': item['enclosure']['@url']
+            })
+        if len(result) > max_results:
+            break
     return result
 
 
@@ -121,7 +128,7 @@ def get_post_id(soup):
 
 
 def get_youtube_feed():
-    client_key = os.environ.get('YOUTUBE_CLIENT_API_KEY')
+    client_key = os.environ.getos.environ.get("YOUTUBE_CLIENT_API_KEY")
     channel_id = 'UCr7Qh5Ks10ub49U6sCmywoA'
     url = 'https://www.googleapis.com/youtube/v3/search?key={}&channelId={}&part=snippet,id&order=date&maxResults=20' \
         .format(client_key, channel_id)
