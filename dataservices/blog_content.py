@@ -129,7 +129,7 @@ def get_post_id(soup):
 
 
 def get_youtube_feed():
-    client_key = os.environ.getos.environ.get("YOUTUBE_CLIENT_API_KEY")
+    client_key = os.environ.get("YOUTUBE_CLIENT_API_KEY")
     channel_id = 'UCr7Qh5Ks10ub49U6sCmywoA'
     url = 'https://www.googleapis.com/youtube/v3/search?key={}&channelId={}&part=snippet,id&order=date&maxResults=20' \
         .format(client_key, channel_id)
