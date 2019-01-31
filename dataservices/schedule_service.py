@@ -22,12 +22,14 @@ def decorate_schedule(schedule):
             game['location'] = "@"
             game['opposition'] = game['home_team']['name']
             game['opposition_logos'] = get_team_images(game['home_team'])
+            game['opposition_record'] = game['home_team']['standing']['short_record']
         else:
             game['location'] = "vs"
             game['opposition'] = game['away_team']['name']
             game['opposition_logos'] = get_team_images(game['away_team'])
+            game['opposition_record'] = game['away_team']['standing']['short_record']
 
-        game['display_string'] = game['location'] + ' ' + game['opposition']
+        game['display_string'] = game['location'] + ' ' + game['opposition'] + ' (' + game['opposition_record'] + ')'
     return result
 
 
