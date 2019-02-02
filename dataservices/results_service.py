@@ -6,7 +6,7 @@ from dataservices.utils.images import get_team_images
 
 def get_results():
     results = decorate_results(json.loads(
-        HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/previous?rpp=10')))
+        HttpUtils.make_request('https://api.thescore.com/nba/teams/5/events/previous?rpp=82')))
     return results
 
 
