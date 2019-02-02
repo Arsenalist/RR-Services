@@ -77,11 +77,14 @@ def get_salaries():
 
 
 def get_quick_reaction():
-    return parse_amp_article_list('https://www.raptorsrepublic.com/category/quick-reaction/amp/')
+    # TODO: Move domain to a global setting
+    return decorate_posts(json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts?categories=1591",
+                                                            with_headers=True)))
 
 
 def get_morning_coffee():
-    return parse_amp_article_list('https://www.raptorsrepublic.com/category/morning-coffee/amp/')
+    return decorate_posts(json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts?categories=978",
+                                                            with_headers=True)))
 
 
 def get_latest():
@@ -110,7 +113,7 @@ def get_featured_media_url(media_id):
 
 def get_user(user_id):
     user = json.loads(HttpUtils.make_request('https://www.raptorsrepublic.com/wp-json/wp/v2/users/' + str(user_id),
-                                              with_headers=True))
+                                             with_headers=True))
     return user['name']
 
 
