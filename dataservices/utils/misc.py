@@ -41,15 +41,3 @@ def findDomain(url):
     return o.hostname
 
 
-def sanitize_content(content):
-    return content.replace("<amp-", "<").replace("</amp-", "</")
-
-
-def encode_string(to_encode):
-    return base64.b64encode(to_encode.encode()).decode('utf-8')
-
-
-def decode_string(to_decode):
-    return base64.b64decode(to_decode.encode('utf-8')).decode()
-
-

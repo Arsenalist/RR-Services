@@ -4,8 +4,7 @@ import os
 from bs4 import BeautifulSoup
 
 from dataservices.utils.httputils import HttpUtils
-from dataservices.utils.misc import remove_attrs, decorate_table_with_material_design, findDomain, encode_string, \
-    decode_string, sanitize_content
+from dataservices.utils.misc import remove_attrs, decorate_table_with_material_design, findDomain
 
 podcast_string_map = {
     'reaction': 'reaction',
@@ -86,35 +85,47 @@ def get_morning_coffee():
 
 
 def get_latest():
-    return parse_amp_article_list('https://www.raptorsrepublic.com/amp/')
+    return decorate_posts(json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts",
+                                                            with_headers=True)))
 
 
-def parse_amp_article_list(url):
-    soup = BeautifulSoup(HttpUtils.make_request(url, with_headers=True))
+def decorate_posts(posts):
     items = []
-    for item in soup.select('.amp-wp-article-header'):
+    for item in posts:
         items.append({
-            'title': item.find('a').get_text(),
-            'url': item.find('a')['href'],
-            'hash': encode_string(item.find('a')['href']),
-            'image': item.find('amp-img')['src'].replace('-100x75', ''),
-            'excerpt': item.find('div', class_='amp-wp-content-loop').find('p').get_text()
+            'title': item['title']['rendered'],
+            'url': item['link'],
+            'id': item['id'],
+            'image': get_featured_media_url(item['featured_media']),
+            'excerpt': item['excerpt']['rendered']
         })
     return items
 
 
-def get_article(hash):
-    url = decode_string(hash)
-    soup = BeautifulSoup(HttpUtils.make_request(url, with_headers=True))
-    disqus_identifier = "raptorsrepublic-" + get_post_id(soup)
-    article = {
-        'title': soup.find('h1', class_='amp-wp-title').get_text(),
-        'image': soup.find('amp-img', class_='attachment-large')['src'],
-        'html': sanitize_content(str(soup.find('div', class_='the_content'))),
-        'author': soup.find('span', class_='amp-wp-author').get_text(),
+def get_featured_media_url(media_id):
+    media = json.loads(HttpUtils.make_request('https://www.raptorsrepublic.com/wp-json/wp/v2/media/' + str(media_id),
+                                              with_headers=True))
+    return media['guid']['rendered']
+
+
+def get_user(user_id):
+    user = json.loads(HttpUtils.make_request('https://www.raptorsrepublic.com/wp-json/wp/v2/users/' + str(user_id),
+                                              with_headers=True))
+    return user['name']
+
+
+def get_article(id):
+    article = json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts/" + id,
+                                                with_headers=True))
+    disqus_identifier = "raptorsrepublic-" + str(id)
+    result = {
+        'title': article['title']['rendered'],
+        'image': get_featured_media_url(article['featured_media']),
+        'html': article['content']['rendered'],
+        'author': get_user(article['author']),
         'disqus_identifier': disqus_identifier
     }
-    return article
+    return result
 
 
 # We're trying to parse <body class="body single-post 96993 post-id-96993 singular-96993 design_1_wrapper">
