@@ -72,7 +72,7 @@ def get_salaries():
             a.parent.append(a.get_text())
             a.decompose()
     if contracts is not None and len(contracts) != 0:
-        results['contracts'] = decorate_table_with_material_design(str(remove_attrs(contracts[0])))
+        results['contracts'] = str(contracts[0])
     return results
 
 
