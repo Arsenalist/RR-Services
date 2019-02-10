@@ -126,6 +126,7 @@ def get_article(id):
         'image': get_featured_media_url(article['featured_media']),
         'html': article['content']['rendered'],
         'author': get_user(article['author']),
+        'date_gmt': article['date_gmt'],
         'disqus_identifier': disqus_identifier
     }
     return result
