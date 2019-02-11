@@ -167,4 +167,4 @@ def condensed_youtube_feed(feed):
 
 
 def get_players_instagram_feed():
-    return json.loads(HttpUtils.make_request('https://forums.raptorsrepublic.com/insta.json'))
+    return json.loads(HttpUtils.make_request('https://assets.raptorsrepublic.com/insta.json'))
