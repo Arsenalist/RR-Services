@@ -23,6 +23,10 @@ def get_salaries():
     return cache.consider_cache('salaries', blog_content.get_salaries)
 
 
+def get_draft_history():
+    return cache.consider_cache('draft_history', blog_content.get_draft_history)
+
+
 def get_latest():
     return cache.consider_cache('latest_content', blog_content.get_latest)
 

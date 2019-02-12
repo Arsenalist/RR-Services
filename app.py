@@ -65,6 +65,9 @@ def web_articles():
 def salaries():
     return json_response(rrapp.get_salaries())
 
+@app.route("/draft-history")
+def draft_history():
+    return json_response(rrapp.get_draft_history())
 
 @app.route("/standings/conference")
 def get_conference_standings():

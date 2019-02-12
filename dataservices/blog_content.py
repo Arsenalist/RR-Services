@@ -76,6 +76,16 @@ def get_salaries():
     return results
 
 
+def get_draft_history():
+    text = HttpUtils.make_request('https://www.basketball-reference.com/teams/TOR/draft.html')
+    soup = BeautifulSoup(text)
+    results = {}
+    # get table
+    history = soup.find(id="draft")
+    results['history'] = str(history)
+    return results
+
+
 def get_quick_reaction():
     # TODO: Move domain to a global setting
     return decorate_posts(json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts?categories=1591",
