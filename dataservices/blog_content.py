@@ -122,20 +122,21 @@ def get_featured_media_url(media_id):
 
 
 def get_user(user_id):
-    user = json.loads(HttpUtils.make_request('https://www.raptorsrepublic.com/wp-json/wp/v2/users/' + str(user_id),
+    return json.loads(HttpUtils.make_request('https://www.raptorsrepublic.com/wp-json/wp/v2/users/' + str(user_id),
                                              with_headers=True))
-    return user['name']
 
 
 def get_article(id):
     article = json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts/" + id,
                                                 with_headers=True))
     disqus_identifier = "raptorsrepublic-" + str(id)
+    user = get_user(article['author'])
     result = {
         'title': article['title']['rendered'],
         'image': get_featured_media_url(article['featured_media']),
         'html': article['content']['rendered'],
-        'author': get_user(article['author']),
+        'author_name': user['name'],
+        'author_avatar_url': user['avatar_urls']['96'],
         'date_gmt': article['date_gmt'],
         'disqus_identifier': disqus_identifier
     }
