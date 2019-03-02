@@ -28,19 +28,23 @@ def get_draft_history():
 
 
 def get_latest():
-    return cache.consider_cache('latest_content', blog_content.get_latest)
+    return cache.consider_cache('latest_content', blog_content.get_articles_by_category)
 
 
 def get_quick_reaction():
-    return cache.consider_cache('quick_reaction', blog_content.get_quick_reaction)
+    return cache.consider_cache('quick_reaction', blog_content.get_articles_by_category, 1591)
 
 
 def get_morning_coffee():
-    return cache.consider_cache('morning_coffee', blog_content.get_morning_coffee)
+    return cache.consider_cache('morning_coffee', blog_content.get_articles_by_category, 978)
 
 
 def get_columns():
-    return cache.consider_cache('columns', blog_content.get_columns)
+    return cache.consider_cache('columns', blog_content.get_articles_by_category, 1)
+
+
+def get_news():
+    return cache.consider_cache('news', blog_content.get_articles_by_category, 2007)
 
 
 def get_article(hash):

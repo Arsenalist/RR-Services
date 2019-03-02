@@ -86,23 +86,10 @@ def get_draft_history():
     return results
 
 
-def get_quick_reaction():
-    # TODO: Move domain to a global setting
+def get_articles_by_category(category_id):
     return decorate_posts(
-        json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts?categories=1591",
-                                          with_headers=True)))
-
-
-def get_morning_coffee():
-    return decorate_posts(
-        json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts?categories=978",
-                                          with_headers=True)))
-
-
-def get_columns():
-    return decorate_posts(
-        json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts?categories=1",
-                                          with_headers=True)))
+        json.loads(HttpUtils.make_request("https://www.raptorsrepublic.com/wp-json/wp/v2/posts?categories="
+                                          + str(category_id), with_headers=True)))
 
 
 def get_latest():

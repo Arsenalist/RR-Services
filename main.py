@@ -101,6 +101,11 @@ def get_columns():
     return json_response(rrapp.get_columns())
 
 
+@app.route("/rr/content/news")
+def get_news():
+    return json_response(rrapp.get_news())
+
+
 @app.route("/rr/content/morning-coffee")
 def get_morning_coffee():
     return json_response(rrapp.get_morning_coffee())
