@@ -96,6 +96,11 @@ def get_quick_reaction():
     return json_response(rrapp.get_quick_reaction())
 
 
+@app.route("/rr/content/columns")
+def get_columns():
+    return json_response(rrapp.get_columns())
+
+
 @app.route("/rr/content/morning-coffee")
 def get_morning_coffee():
     return json_response(rrapp.get_morning_coffee())

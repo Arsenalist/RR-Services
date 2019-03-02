@@ -39,6 +39,10 @@ def get_morning_coffee():
     return cache.consider_cache('morning_coffee', blog_content.get_morning_coffee)
 
 
+def get_columns():
+    return cache.consider_cache('columns', blog_content.get_columns)
+
+
 def get_article(hash):
     return cache.consider_cache('article_' + hash, blog_content.get_article, hash)
 

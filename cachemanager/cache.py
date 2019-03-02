@@ -5,7 +5,7 @@ import json
 
 
 def get_redis_client():
-    return StrictRedis.from_url(os.environ.get("REDIS_URL"), decode_responses=True)
+    return StrictRedis.from_url('redis://h:UEIkIQukd1QroUQHMyiWUNJCUvyzDiAy@redis-18194.c44.us-east-1-2.ec2.cloud.redislabs.com:18194', decode_responses=True)
 
 
 redis_client = get_redis_client()
