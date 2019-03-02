@@ -28,7 +28,7 @@ def get_draft_history():
 
 
 def get_latest():
-    return cache.consider_cache('latest_content', blog_content.get_articles_by_category)
+    return cache.consider_cache('latest_content', blog_content.get_latest)
 
 
 def get_quick_reaction():
