@@ -16,7 +16,7 @@ def get_web_articles():
 
 
 def get_news():
-    return cache.consider_cache('news', blog_content.get_news)
+    return cache.consider_cache('injuries_news', blog_content.get_news)
 
 
 def get_salaries():
@@ -31,6 +31,10 @@ def get_latest():
     return cache.consider_cache('latest_content', blog_content.get_latest)
 
 
+def get_g_league():
+    return cache.consider_cache('g_league', blog_content.get_articles_by_category, 2009)
+
+
 def get_quick_reaction():
     return cache.consider_cache('quick_reaction', blog_content.get_articles_by_category, 1591)
 
@@ -43,8 +47,8 @@ def get_columns():
     return cache.consider_cache('columns', blog_content.get_articles_by_category, 1)
 
 
-def get_news():
-    return cache.consider_cache('news', blog_content.get_articles_by_category, 2007)
+def get_raptors_news():
+    return cache.consider_cache('raptors_news', blog_content.get_articles_by_category, 2007)
 
 
 def get_article(hash):

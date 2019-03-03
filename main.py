@@ -103,7 +103,12 @@ def get_columns():
 
 @app.route("/rr/content/news")
 def get_news():
-    return json_response(rrapp.get_news())
+    return json_response(rrapp.get_raptors_news())
+
+
+@app.route("/rr/content/g-league")
+def get_g_league():
+    return json_response(rrapp.get_g_league())
 
 
 @app.route("/rr/content/morning-coffee")
