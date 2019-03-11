@@ -83,7 +83,10 @@ def get_transactions():
     results = {}
     contracts = soup.select('.page_index')
     if contracts and len(contracts) > 0:
-        results['transactions'] = str(contracts[0])
+        c = contracts[0]
+        for a in c.find_all('a'):
+            a.unwrap()
+        results['transactions'] = str(c)
     return results
 
 
