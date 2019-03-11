@@ -66,6 +66,11 @@ def salaries():
     return json_response(rrapp.get_salaries())
 
 
+@app.route("/transactions")
+def transactions():
+    return json_response(rrapp.get_transactions())
+
+
 @app.route("/draft-history")
 def draft_history():
     return json_response(rrapp.get_draft_history())

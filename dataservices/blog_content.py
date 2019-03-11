@@ -77,6 +77,16 @@ def get_salaries():
     return results
 
 
+def get_transactions():
+    text = HttpUtils.make_request('https://www.basketball-reference.com/teams/TOR/2019_transactions.html')
+    soup = BeautifulSoup(text)
+    results = {}
+    contracts = soup.select('.page_index')
+    if contracts and len(contracts) > 0:
+        results['transactions'] = str(contracts[0])
+    return results
+
+
 def get_draft_history():
     text = HttpUtils.make_request('https://www.basketball-reference.com/teams/TOR/draft.html')
     soup = BeautifulSoup(text)
