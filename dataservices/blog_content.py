@@ -127,7 +127,10 @@ def decorate_posts(posts):
 def get_featured_media_url(media_id):
     media = json.loads(HttpUtils.make_request('https://www.raptorsrepublic.com/wp-json/wp/v2/media/' + str(media_id),
                                               with_headers=True))
-    return media['guid']['rendered']
+    if 'guid' in media and 'rendered' in media['guid']:
+        return media['guid']['rendered']
+    else:
+        return ''
 
 
 def get_user(user_id):
